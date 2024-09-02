@@ -17,12 +17,12 @@ func NewSm4Cbc() *Sm4Cbc {
 	return &Sm4Cbc{}
 }
 
-func (s *Sm4Cbc) Encrypt(key, iv, plainText []byte) ([]byte, error) {
-	return sm4.Sm4Cbc([]byte(key), plainText, true)
+func (s *Sm4Cbc) Encrypt(key, plainText []byte) ([]byte, error) {
+	return sm4.Sm4Cbc(key, plainText, true)
 }
 
-func (s *Sm4Cbc) Decrypt(key, iv, cipherText []byte) ([]byte, error) {
-	return sm4.Sm4Cbc([]byte(key), cipherText, false)
+func (s *Sm4Cbc) Decrypt(key, cipherText []byte) ([]byte, error) {
+	return sm4.Sm4Cbc(key, cipherText, false)
 }
 
 func (s *Sm4Cbc) GetAlgorithm() string {

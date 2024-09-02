@@ -13,3 +13,7 @@ import "encoding/hex"
 func Hex2Bytes(hexStr string) ([]byte, error) {
 	return hex.DecodeString(hexStr)
 }
+
+func Bytes2Hex(b []byte) string {
+	return hex.EncodeToString(b)
+}
