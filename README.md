@@ -44,7 +44,7 @@ gossl is a crypto library implemented in golang. It provides a command-line tool
 - Halo2
 - ZK-STARK
 
-### Crypto In Privacy Computing
+### Crypto In Secure Multi-Party Computation
 - Secure Multi-Party Computation
 - Secure Two-Party Computation
 - Privacy Set Intersection
