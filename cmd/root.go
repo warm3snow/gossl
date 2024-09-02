@@ -7,6 +7,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/warm3snow/gossl/cmd/cipher"
+	"github.com/warm3snow/gossl/cmd/dgst"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -39,6 +40,7 @@ func init() {
 
 	// Add subcommands
 	rootCmd.AddCommand(cipher.EncCmd())
+	rootCmd.AddCommand(dgst.DgstCmd())
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
@@ -52,6 +54,13 @@ func init() {
 
 	// verbose
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
+
+	rootCmd.PersistentFlags().StringP("in", "i", "", "The input file")
+
+	rootCmd.PersistentFlags().StringP("out", "o", "", "The output file")
+
+	rootCmd.PersistentFlags().StringP("algo", "a", "", "Specify the supported algorithm")
+
 }
 
 // initConfig reads in config file and ENV variables if set.

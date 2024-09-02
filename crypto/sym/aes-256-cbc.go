@@ -63,10 +63,10 @@ func (a *Aes256Cbc) Decrypt(key, cipherText []byte) ([]byte, error) {
 	return utils.Unpad(cipherText)
 }
 
-func (a *Aes256Cbc) GetAlgorithm() string {
+func (a *Aes256Cbc) Algorithm() string {
 	return "aes-256-cbc"
 }
 
-func (a *Aes256Cbc) GetAlgorithmKind() string {
+func (a *Aes256Cbc) AlgorithmKind() string {
 	return "symmetric"
 }

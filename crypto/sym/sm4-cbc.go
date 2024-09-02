@@ -25,10 +25,10 @@ func (s *Sm4Cbc) Decrypt(key, cipherText []byte) ([]byte, error) {
 	return sm4.Sm4Cbc(key, cipherText, false)
 }
 
-func (s *Sm4Cbc) GetAlgorithm() string {
+func (s *Sm4Cbc) Algorithm() string {
 	return "sm4-cbc"
 }
 
-func (s *Sm4Cbc) GetAlgorithmKind() string {
+func (s *Sm4Cbc) AlgorithmKind() string {
 	return "symmetric"
 }

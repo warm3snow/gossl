@@ -1,4 +1,8 @@
-package cipher
+/*
+Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+
+*/
+package dgst
 
 import (
 	"fmt"
@@ -9,15 +13,20 @@ import (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "list supported symmetric ciphers",
-	Long:  `list supported symmetric ciphers`,
+	Short: "A brief description of your command",
+	Long: `A longer description that spans multiple lines and likely contains examples
+and usage of using your command. For example:
+
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		listCiphers()
 	},
 }
 
 func init() {
-	encCmd.AddCommand(listCmd)
+	dgstCmd.AddCommand(listCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -32,7 +41,7 @@ func init() {
 
 func listCiphers() {
 	fmt.Println("Supported ciphers:")
-	for _, algo := range crypto.AlgorithmKindMap["symmetric"] {
+	for _, algo := range crypto.AlgorithmKindMap["digest"] {
 		fmt.Println(algo.(crypto.CryptoAlgorithm).Algorithm())
 	}
 }

@@ -1,43 +1,56 @@
-package cipher
+/*
+Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+
+*/
+package dgst
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"github.com/warm3snow/gossl/crypto"
-	"github.com/warm3snow/gossl/crypto/sym"
+	"github.com/warm3snow/gossl/crypto/dgst"
 	"github.com/warm3snow/gossl/utils"
+
+	"github.com/spf13/cobra"
 )
 
-// encCmd represents the enc command
-var encCmd = &cobra.Command{
-	Use:   "enc",
-	Short: "encrypt or decrypt file",
-	Long:  `encrypt or decrypt file with specified algorithm and key.`,
+// dgstCmd represents the dgst command
+var dgstCmd = &cobra.Command{
+	Use:   "dgst",
+	Short: "A brief description of your command",
+	Long: `A longer description that spans multiple lines and likely contains examples
+and usage of using your command. For example:
+
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := checkRequiredFlags(cmd, args); err != nil {
 			panic(err)
 		}
-		if err := runEnc(); err != nil {
+		if err := runDgst(); err != nil {
 			panic(err)
 		}
 	},
 }
 
-func init() {
+func DgstCmd() *cobra.Command {
+	return dgstCmd
+}
 
+func init() {
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// encCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// dgstCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// encCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// dgstCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	encCmd.Flags().StringVarP(&k, "key", "k", "", "Specify the key, hex string")
+	dgstCmd.Flags().StringVarP(&k, "key", "k", "", "Specify the key, hex string")
 
-	encCmd.Flags().BoolVarP(&d, "decrypt", "d", false, "Decrypt the input data")
 }
 
 var (
@@ -45,17 +58,12 @@ var (
 	out  string
 	algo string
 	k    string
-	d    bool
 )
 
 var (
 	input []byte
 	key   []byte
 )
-
-func EncCmd() *cobra.Command {
-	return encCmd
-}
 
 func checkRequiredFlags(cmd *cobra.Command, args []string) error {
 	var err error
@@ -69,9 +77,7 @@ func checkRequiredFlags(cmd *cobra.Command, args []string) error {
 			return errors.Wrap(err, "read input file failed")
 		}
 	}
-	if k == "" {
-		return errors.New("missing required flag: key")
-	} else {
+	if k != "" {
 		key, err = utils.Hex2Bytes(k)
 		if err != nil {
 			return errors.Wrap(err, "parse key failed, not a valid hex string")
@@ -84,14 +90,15 @@ func checkRequiredFlags(cmd *cobra.Command, args []string) error {
 	}
 
 	out, err = cmd.Parent().Flags().GetString("out")
-	if err != nil {
-		return errors.Wrapf(err, "get flag out failed")
-	}
+	_ = err
+	//if err != nil {
+	//	return errors.Wrapf(err, "get flag out failed")
+	//}
 
 	return nil
 }
 
-func runEnc() error {
+func runDgst() error {
 	value, exist := crypto.AlgorithmMap[algo]
 	if !exist {
 		return errors.Errorf("unsupported algorithm: %s", algo)
@@ -99,26 +106,20 @@ func runEnc() error {
 
 	var (
 		output []byte
-		err    error
 	)
 	switch value.(type) {
-	case *sym.Sm4Cbc:
-		sm4Cbc := value.(*sym.Sm4Cbc)
-		if d {
-			output, err = sm4Cbc.Decrypt(key, input)
-		} else {
-			output, err = sm4Cbc.Encrypt(key, input)
-		}
-	case *sym.Aes256Cbc:
-		aes256Cbc := value.(*sym.Aes256Cbc)
-		if d {
-			output, err = aes256Cbc.Decrypt(key, input)
-		} else {
-			output, err = aes256Cbc.Encrypt(key, input)
-		}
+	case *dgst.Sha256:
+		output = value.(*dgst.Sha256).Sum(input)
+	case *dgst.Sm3:
+		output = value.(*dgst.Sm3).Sum(input)
 	}
-	if err != nil {
-		return err
+
+	if out != "" {
+		if err := utils.WriteFile(out, output); err != nil {
+			return errors.Wrap(err, "write output file failed")
+		}
+	} else {
+		fmt.Println(utils.Bytes2Hex(output))
 	}
-	return utils.WriteFile(out, output)
+	return nil
 }
