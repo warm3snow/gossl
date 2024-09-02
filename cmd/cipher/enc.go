@@ -1,9 +1,12 @@
 package cipher
 
 import (
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/warm3snow/gossl/crypto"
 	"github.com/warm3snow/gossl/crypto/sym"
+	"github.com/warm3snow/gossl/utils"
+	"os"
 )
 
 // encCmd represents the enc command
@@ -17,7 +20,10 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		runCipher(cmd, args)
+		if err := checkRequiredFlags(); err != nil {
+			panic(err)
+		}
+		run()
 	},
 }
 
@@ -43,7 +49,7 @@ func init() {
 
 	d = encCmd.Flags().BoolP("decrypt", "d", false, "Decrypt the input data")
 
-	iv = encCmd.Flags().StringP("iv", "v", "", "Specify the iv, hex string")
+	iv = encCmd.Flags().String("iv", "", "Specify the iv, hex string")
 }
 
 var (
@@ -55,35 +61,77 @@ var (
 	iv   *string
 )
 
+var (
+	input []byte
+	key   []byte
+)
+
 func EncCmd() *cobra.Command {
 	return encCmd
 }
 
-func checkRequiredFlags() {
+func checkRequiredFlags() error {
+	var err error
 	if *in == "" {
-		panic("missing required flag: in")
+		return errors.New("missing required flag: in")
+	} else {
+		// check if file exists
+		if _, err := os.Stat(*in); os.IsNotExist(err) {
+			return errors.New("input file not exists")
+		}
+		// read file
+		input, err = utils.ReadFile(*in)
+		if err != nil {
+			return errors.Wrap(err, "read input file failed")
+		}
 	}
 	if *out == "" {
-		panic("missing required flag: out")
+		return errors.New("missing required flag: out")
+	} else {
+		// check if file exists
+		if _, err := os.Stat(*out); os.IsNotExist(err) {
+			return errors.New("output file not exists")
+		}
 	}
 	if *k == "" {
-		panic("missing required flag: key")
+		return errors.New("missing required flag: key")
+	} else {
+		key, err = utils.Hex2Bytes(*k)
+		if err != nil {
+			return errors.Wrap(err, "parse key failed, not a valid hex string")
+		}
 	}
+	return nil
 }
 
-func runCipher(cmd *cobra.Command, args []string) {
+func run() error {
 	value, exist := crypto.AlgorithmMap[*algo]
 	if !exist {
-		panic("unsupported algorithm")
+		return errors.New("unsupported algorithm")
 	}
 
+	var (
+		output []byte
+		err    error
+	)
 	switch value.(type) {
 	case *sym.Sm4Cbc:
 		sm4Cbc := value.(*sym.Sm4Cbc)
 		if *d {
-			sm4Cbc.Decrypt([]byte(*k), []byte(*iv), nil)
+			output, err = sm4Cbc.Decrypt([]byte(*k), []byte(*iv), input)
 		} else {
-			sm4Cbc.Encrypt([]byte(*k), []byte(*iv), nil)
+			output, err = sm4Cbc.Encrypt([]byte(*k), []byte(*iv), input)
+		}
+	case *sym.Aes256Cbc:
+		aes256Cbc := value.(*sym.Aes256Cbc)
+		if *d {
+			output, err = aes256Cbc.Decrypt([]byte(*k), []byte(*iv), input)
+		} else {
+			output, err = aes256Cbc.Encrypt([]byte(*k), []byte(*iv), input)
 		}
 	}
+	if err != nil {
+		return err
+	}
+	return utils.WriteFile(*out, output)
 }
