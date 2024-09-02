@@ -25,8 +25,7 @@ gossl is a crypto library implemented in golang. It provides a command-line tool
 - Homomorphic Encryption
 - Proxy Re-Encryption
 - Threshold Cryptography
-- Secure Multi-Party Computation
-- Secure Two-Party Computation
+- Oblivious Transfer
 - Attribute-Based Encryption
 - Identity-Based Encryption
 - Functional Encryption
@@ -36,9 +35,17 @@ gossl is a crypto library implemented in golang. It provides a command-line tool
 - Ring Signature
 - Zero-Knowledge Proof
 
-### Cryptography In Blockchain
+### Crypto In Blockchain
+- Merkle Tree
+- Ring Signature
 - Groth16
 - Plonk
 - UltraPlonk
 - Halo2
 - ZK-STARK
+
+### Crypto In Privacy Computing
+- Secure Multi-Party Computation
+- Secure Two-Party Computation
+- Privacy Set Intersection
+- Privacy Information Retrieval
