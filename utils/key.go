@@ -9,10 +9,11 @@
 package utils
 
 import (
+	"crypto/ecdsa"
 	stdx509 "crypto/x509"
-	"crypto/x509/pkix"
 	"encoding/pem"
 	"github.com/pkg/errors"
+	"github.com/tjfoc/gmsm/sm2"
 	"github.com/tjfoc/gmsm/x509"
 )
 
@@ -52,21 +53,15 @@ func KeyPem2PublicKey(keyPem []byte) (any, error) {
 	return ParsePKIXPublicKey(block.Bytes)
 }
 
-type pkcs8 struct {
-	Version    int
-	Algo       pkix.AlgorithmIdentifier
-	PrivateKey []byte
-}
-
 func ParsePKCS8PrivateKey(der []byte) (any, error) {
 	var (
 		key any
 	)
-	key, err := stdx509.ParsePKCS8PrivateKey(der)
+	key, err := x509.ParsePKCS8PrivateKey(der, nil)
 	if err == nil {
 		return key, nil
 	}
-	key, err = x509.ParsePKCS8PrivateKey(der, nil)
+	key, err = stdx509.ParsePKCS8PrivateKey(der)
 	if err == nil {
 		return key, nil
 	}
@@ -74,5 +69,20 @@ func ParsePKCS8PrivateKey(der []byte) (any, error) {
 }
 
 func ParsePKIXPublicKey(der []byte) (any, error) {
-	return x509.ParsePKIXPublicKey(der)
+	pub, err := x509.ParsePKIXPublicKey(der)
+	if err != nil {
+		return nil, err
+	}
+
+	switch pubKey := pub.(type) {
+	case *ecdsa.PublicKey:
+		if pubKey.Curve == sm2.P256Sm2() {
+			pub = &sm2.PublicKey{
+				Curve: sm2.P256Sm2(),
+				X:     pubKey.X,
+				Y:     pubKey.Y,
+			}
+		}
+	}
+	return pub, nil
 }

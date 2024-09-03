@@ -3,6 +3,7 @@ package asym
 import (
 	"crypto/ecdsa"
 	"crypto/rsa"
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/tjfoc/gmsm/sm2"
@@ -93,6 +94,7 @@ func runSign(cmd *cobra.Command) error {
 	}
 
 	if verbose(cmd) {
+		utils.Print(os.Stdout, []byte("sign key type: "+fmt.Sprintf("%T", keyAny)+"\n"))
 		utils.Print(os.Stdout, []byte("sign data: "+utils.Bytes2Hex(input)+"\n"))
 		utils.Print(os.Stdout, []byte("sign dgst: "+utils.Bytes2Hex(datadgst)+"\n"))
 		utils.Print(os.Stdout, []byte("sign signature: "+utils.Bytes2Hex(signature)+"\n"))

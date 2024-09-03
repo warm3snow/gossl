@@ -7,6 +7,7 @@ package asym
 import (
 	"crypto/ecdsa"
 	"crypto/rsa"
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/tjfoc/gmsm/sm2"
@@ -99,6 +100,7 @@ func runVerify(cmd *cobra.Command) error {
 	}
 
 	if verbose(cmd) {
+		utils.Print(os.Stdout, []byte("sign key type: "+fmt.Sprintf("%T", keyAny)+"\n"))
 		utils.Print(os.Stdout, []byte("verify data: "+utils.Bytes2Hex(input)+"\n"))
 		utils.Print(os.Stdout, []byte("verify dgst: "+utils.Bytes2Hex(dataDgst)+"\n"))
 		utils.Print(os.Stdout, []byte("verify signature: "+utils.Bytes2Hex(signature)+"\n"))
