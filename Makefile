@@ -17,11 +17,11 @@ GOLDFLAGS += -X "${LOCALCONF_HOME}.GitCommit=${GIT_COMMIT}"
 
 # 本地编译
 build:
-	go mod tidy && go build -mod=mod -ldflags '${GOLDFLAGS}' -o ./build/gossl ./cmd/main.go
+	go mod tidy && go build -mod=mod -ldflags '${GOLDFLAGS}' -o ./build/gossl ./main.go
 
 # 本地编译 depend on vendor
 build_local:
-	go build -ldflags '${GOLDFLAGS}' -o ./build/gossl ./cmd/main.go
+	go build -ldflags '${GOLDFLAGS}' -o ./build/gossl ./main.go
 
 build_docker:
 	# build binary
@@ -33,7 +33,7 @@ build_linux:
 	# mkdir build
 	@rm -rf build/linux_amd64 && mkdir -p build/linux_amd64
 	# linux
-	go mod tidy && CGO_ENABLED=1 CC=${CROSS_BUILD_LINUX_GUN_GCC}  GOARCH=amd64 GOOS=linux go build  -ldflags '${GOLDFLAGS}' -o ./build/gossl ./cmd/main.go
+	go mod tidy && CGO_ENABLED=1 CC=${CROSS_BUILD_LINUX_GUN_GCC}  GOARCH=amd64 GOOS=linux go build  -ldflags '${GOLDFLAGS}' -o ./build/gossl ./main.go
 
 	md5 ./build/gossl | awk '{print $NF}' > build/md5.txt
 # 生成代码(no use)

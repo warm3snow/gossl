@@ -29,7 +29,7 @@ func (s *Sm2WithSm3) Verify(data, signature []byte, key *sm2.PublicKey) bool {
 }
 
 func (s *Sm2WithSm3) Algorithm() string {
-	return "SM2"
+	return "sm2"
 }
 
 func (s *Sm2WithSm3) AlgorithmKind() string {

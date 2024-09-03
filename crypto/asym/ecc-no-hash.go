@@ -30,7 +30,7 @@ func (e *EccNoHash) Verify(data, signature []byte, key *ecdsa.PublicKey, signerO
 }
 
 func (e *EccNoHash) Algorithm() string {
-	return "ECDSA"
+	return "ecdsa"
 }
 
 func (e *EccNoHash) AlgorithmKind() string {

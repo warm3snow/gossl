@@ -35,7 +35,7 @@ func (r *RsaNoSha256) Verify(data, signature []byte, key *rsa.PublicKey, signerO
 }
 
 func (r *RsaNoSha256) Algorithm() string {
-	return "RSA"
+	return "rsa"
 }
 
 func (r *RsaNoSha256) AlgorithmKind() string {

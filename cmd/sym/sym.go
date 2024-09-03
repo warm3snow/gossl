@@ -11,8 +11,8 @@ import (
 // symCmd represents the sym command
 var symCmd = &cobra.Command{
 	Use:   "sym",
-	Short: "encrypt or decrypt file",
-	Long:  `encrypt or decrypt file with specified algorithm and key.`,
+	Short: "symmetric cryptography",
+	Long:  `symmetric cryptography to KeyGen, Encrypt, Decrypt, etc.`,
 	//Run: func(cmd *cobra.Command, args []string) {
 	//},
 }

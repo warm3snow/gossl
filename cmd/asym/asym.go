@@ -37,7 +37,7 @@ func init() {
 	asymCmd.PersistentFlags().StringP("key", "k", "", "Specify the key file")
 
 	asymCmd.PersistentFlags().StringP("dgst", "d", "",
-		"Specify the digest algorithm [sm3, sha256, sha384, sha512]")
+		"Specify the digest algorithm to hash data before sign or verify signature, e.g [sm3, sha256, sha384, sha512]")
 }
 
 func verbose(cmd *cobra.Command) bool {

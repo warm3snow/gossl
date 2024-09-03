@@ -17,8 +17,8 @@ import (
 // keygenCmd represents the keygen command
 var keygenCmd = &cobra.Command{
 	Use:   "keygen",
-	Short: "generate a random key",
-	Long:  `generate a random asym private key with specified length.`,
+	Short: "generate a random asymmetric private key",
+	Long:  `generate a random asymmetric private key with specified length.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := runKeyGen(cmd); err != nil {
 			panic(err)
