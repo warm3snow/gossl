@@ -13,13 +13,8 @@ import (
 // kdfCmd represents the kdf command
 var kdfCmd = &cobra.Command{
 	Use:   "kdf",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "key derivation function",
+	Long:  `key derivation function is a function that derives a secret key from a secret password.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("kdf called")
 	},
@@ -40,4 +35,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// kdfCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	kdfCmd.PersistentFlags().StringP("password", "p", "123456",
+		"Specify the password used to derive the key")
 }

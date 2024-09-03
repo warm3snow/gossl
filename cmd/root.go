@@ -59,11 +59,11 @@ func init() {
 	// verbose
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
 
-	rootCmd.PersistentFlags().StringP("in", "i", "", "The input file")
+	rootCmd.PersistentFlags().String("in", "", "The input file")
 
-	rootCmd.PersistentFlags().StringP("out", "o", "", "The output file")
+	rootCmd.PersistentFlags().String("out", "", "The output file")
 
-	rootCmd.PersistentFlags().StringP("algo", "a", "", "Specify the supported algorithm")
+	rootCmd.PersistentFlags().String("algo", "a", "Specify the supported algorithm")
 
 }
 
