@@ -35,7 +35,7 @@ func init() {
 }
 
 func listCiphers() {
-	fmt.Println("Supported ciphers:")
+	fmt.Println("Supported digest algorithms:")
 	for _, algo := range crypto.AlgorithmKindMap["digest"] {
 		fmt.Println(algo.(crypto.CryptoAlgorithm).Algorithm())
 	}

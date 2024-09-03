@@ -1,12 +1,12 @@
 /**
  * @Author: xueyanghan
- * @File: bcryptimpl.go
+ * @File: bcrypt.go
  * @Version: 1.0.0
  * @Description: desc.
  * @Date: 2023/9/19 15:54
  */
 
-package bcryptimpl
+package kdf_impl
 
 import (
 	"github.com/pkg/errors"
@@ -17,6 +17,10 @@ import (
 type BcryptImpl struct {
 	cost      int
 	deriveKey []byte
+}
+
+func NewBcryptImpl(cost int) *BcryptImpl {
+	return &BcryptImpl{cost: cost}
 }
 
 func (b *BcryptImpl) DeriveKeyByPassword(password string) (deriveKey []byte, err error) {
@@ -30,10 +34,10 @@ func (b *BcryptImpl) DeriveKeyByPassword(password string) (deriveKey []byte, err
 
 func (b *BcryptImpl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk bool, err error) {
 	kdfKeyStr = strings.TrimPrefix(kdfKeyStr, "$")
-	if !strings.HasPrefix(kdfKeyStr, b.KDFName()) {
+	if !strings.HasPrefix(kdfKeyStr, b.Algorithm()) {
 		return false, errors.New("kdfKeyStr format error, not bcrypt")
 	}
-	kdfKeyStr = strings.TrimPrefix(kdfKeyStr, b.KDFName())
+	kdfKeyStr = strings.TrimPrefix(kdfKeyStr, b.Algorithm())
 	err = bcrypt.CompareHashAndPassword([]byte(kdfKeyStr), password)
 	if err != nil {
 		return false, errors.Wrap(err, "bcrypt.CompareHashAndPassword error")
@@ -43,13 +47,13 @@ func (b *BcryptImpl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 
 func (b *BcryptImpl) GetDeriveKeyStr() string {
 	// key format: $bcrypt$bcrpytFormatKey
-	return "$" + b.KDFName() + string(b.deriveKey)
+	return "$" + b.Algorithm() + string(b.deriveKey)
 }
 
-func (b *BcryptImpl) KDFName() string {
+func (b *BcryptImpl) Algorithm() string {
 	return "bcrypt"
 }
 
-func New(cost int) *BcryptImpl {
-	return &BcryptImpl{cost: cost}
+func (b *BcryptImpl) AlgorithmKind() string {
+	return "kdf"
 }

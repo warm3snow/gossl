@@ -1,23 +1,28 @@
-package asym
+/*
+Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+
+*/
+package kdf
 
 import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/warm3snow/gossl/crypto"
+	"github.com/warm3snow/gossl/kdf"
 )
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "list supported asymmetric algorithms",
-	Long:  `list supported asymmetric algorithms`,
+	Short: "list supported key derivation functions",
+	Long:  `list supported key derivation functions`,
 	Run: func(cmd *cobra.Command, args []string) {
 		listCiphers()
 	},
 }
 
 func init() {
-	asymCmd.AddCommand(listCmd)
+	kdfCmd.AddCommand(listCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -31,8 +36,8 @@ func init() {
 }
 
 func listCiphers() {
-	fmt.Println("Supported asymmetric algorithms:")
-	for _, algo := range crypto.AlgorithmKindMap["asymmetric"] {
+	fmt.Println("Supported kdf algorithms:")
+	for _, algo := range kdf.AlgorithmKindMap["kdf"] {
 		fmt.Println(algo.(crypto.CryptoAlgorithm).Algorithm())
 	}
 }

@@ -1,12 +1,12 @@
 /**
  * @Author: xueyanghan
- * @File: argon2impl.go
+ * @File: argon2.go
  * @Version: 1.0.0
  * @Description: desc.
  * @Date: 2023/9/19 14:18
  */
 
-package argon2impl
+package kdf_impl
 
 import (
 	"bytes"
@@ -19,27 +19,31 @@ import (
 	"strings"
 )
 
-var (
-	defaultTime   = 3
-	defaultMemory = 32 * 1024
-	defaultThread = 4
-	defaultKeyLen = 32
-
-	defaultSaltLen = 16
-)
-
 type Argon2Impl struct {
 	time    int
 	memory  int //memory the memory parameter specifies the size of the memory in KiB
 	threads int
 	keyLen  int
+	saltLen int
 
 	salt      []byte
 	deriveKey []byte
 }
 
+func NewArgon2Impl(time, memory, threads, keyLen, saltLen int) *Argon2Impl {
+	argon2Impl := &Argon2Impl{
+		time:    time,
+		memory:  memory,
+		threads: threads,
+		keyLen:  keyLen,
+		saltLen: saltLen,
+	}
+
+	return argon2Impl
+}
+
 func (a *Argon2Impl) DeriveKeyByPassword(password string) (deriveKey []byte, err error) {
-	salt := make([]byte, defaultSaltLen)
+	salt := make([]byte, a.saltLen)
 	_, err = rand.Read(salt)
 	if err != nil {
 		return nil, errors.Wrap(err, "rand.Read failed")
@@ -55,7 +59,7 @@ func (a *Argon2Impl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 	if len(kdfKeyStrs) != 4 {
 		return false, errors.New("kdfKeyStr format error, not 4 parts")
 	}
-	if kdfKeyStrs[0] != a.KDFName() {
+	if kdfKeyStrs[0] != a.Algorithm() {
 		return false, errors.New("kdfKeyStr format error, not argon2")
 	}
 	salt, err := base64.StdEncoding.DecodeString(kdfKeyStrs[1])
@@ -101,7 +105,7 @@ func (a *Argon2Impl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 func (a *Argon2Impl) GetDeriveKeyStr() string {
 	// format: $argon2$salt$key$time:memory:threads:keyLen
 	kdfKeyStrs := make([]string, 0)
-	kdfKeyStrs = append(kdfKeyStrs, a.KDFName())
+	kdfKeyStrs = append(kdfKeyStrs, a.Algorithm())
 	encodedSalt := base64.StdEncoding.EncodeToString(a.salt)
 	kdfKeyStrs = append(kdfKeyStrs, fmt.Sprintf("%s", encodedSalt))
 	encodedDK := base64.StdEncoding.EncodeToString(a.deriveKey)
@@ -114,34 +118,10 @@ func (a *Argon2Impl) GetDeriveKey() []byte {
 	return a.deriveKey
 }
 
-func (a *Argon2Impl) KDFName() string {
+func (a *Argon2Impl) Algorithm() string {
 	return "argon2"
 }
 
-func (a *Argon2Impl) checkParams() {
-	if a.time <= 0 {
-		a.time = defaultTime
-	}
-	if a.memory <= 0 {
-		a.memory = defaultMemory
-	}
-	if a.threads <= 0 {
-		a.threads = defaultThread
-	}
-	if a.keyLen <= 0 {
-		a.keyLen = defaultKeyLen
-	}
-}
-
-// New - new a Argon2Impl
-func New(time, memory, threads, keyLen int) *Argon2Impl {
-	argon2Impl := &Argon2Impl{
-		time:    time,
-		memory:  memory,
-		threads: threads,
-		keyLen:  keyLen,
-	}
-	argon2Impl.checkParams()
-
-	return argon2Impl
+func (a *Argon2Impl) AlgorithmKind() string {
+	return "kdf"
 }

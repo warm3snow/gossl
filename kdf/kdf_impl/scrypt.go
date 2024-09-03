@@ -1,12 +1,12 @@
 /**
  * @Author: xueyanghan
- * @File: pbkdf2impl.go
+ * @File: pbkdf2.go
  * @Version: 1.0.0
  * @Description: desc.
  * @Date: 2023/9/19 16:02
  */
 
-package scryptimpl
+package kdf_impl
 
 import (
 	"bytes"
@@ -29,11 +29,22 @@ var (
 )
 
 type ScryptImpl struct {
-	n, r, p int
-	keyLen  int
+	n, r, p         int
+	keyLen, saltLen int
 
 	salt      []byte
 	deriveKey []byte
+}
+
+func NewScryptImpl(n, r, p, keyLen, saltLen int) *ScryptImpl {
+	impl := &ScryptImpl{
+		n:       n,
+		r:       r,
+		p:       p,
+		keyLen:  keyLen,
+		saltLen: saltLen,
+	}
+	return impl
 }
 
 func (s *ScryptImpl) DeriveKeyByPassword(password string) (deriveKey []byte, err error) {
@@ -56,7 +67,7 @@ func (s *ScryptImpl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 	if len(kdfKeyStrs) != 4 {
 		return false, errors.New("kdfKeyStr format error, not 4 parts")
 	}
-	if kdfKeyStrs[0] != s.KDFName() {
+	if kdfKeyStrs[0] != s.Algorithm() {
 		return false, errors.New("kdfKeyStr format error, not scrypt")
 	}
 	salt, err := base64.StdEncoding.DecodeString(kdfKeyStrs[1])
@@ -100,7 +111,7 @@ func (s *ScryptImpl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 func (s *ScryptImpl) GetDeriveKeyStr() string {
 	// kdf key format: $scrypt$$salt$key$n:r:p:keyLen
 	kdfKeyStrs := make([]string, 0)
-	kdfKeyStrs = append(kdfKeyStrs, s.KDFName())
+	kdfKeyStrs = append(kdfKeyStrs, s.Algorithm())
 	encodedSalt := base64.StdEncoding.EncodeToString(s.salt)
 	kdfKeyStrs = append(kdfKeyStrs, encodedSalt)
 	encodedDK := base64.StdEncoding.EncodeToString(s.deriveKey)
@@ -109,32 +120,10 @@ func (s *ScryptImpl) GetDeriveKeyStr() string {
 	return "$" + strings.Join(kdfKeyStrs, "$")
 }
 
-func (s *ScryptImpl) checkParams() {
-	if s.n <= 0 {
-		s.n = defaultN
-	}
-	if s.r <= 0 {
-		s.r = defaultR
-	}
-	if s.p <= 0 {
-		s.p = defaultP
-	}
-	if s.keyLen <= 0 {
-		s.keyLen = defaultKeyLen
-	}
-}
-
-func (s *ScryptImpl) KDFName() string {
+func (s *ScryptImpl) Algorithm() string {
 	return "scrypt"
 }
 
-func New(n, r, p, keyLen int) *ScryptImpl {
-	impl := &ScryptImpl{
-		n:      n,
-		r:      r,
-		p:      p,
-		keyLen: keyLen,
-	}
-	impl.checkParams()
-	return impl
+func (s *ScryptImpl) AlgorithmKind() string {
+	return "kdf"
 }

@@ -1,12 +1,12 @@
 /**
  * @Author: xueyanghan
- * @File: pbkdf2impl.go
+ * @File: pbkdf2.go
  * @Version: 1.0.0
  * @Description: desc.
  * @Date: 2023/9/19 16:02
  */
 
-package pbkdf2impl
+package kdf_impl
 
 import (
 	"bytes"
@@ -21,23 +21,29 @@ import (
 )
 
 var (
-	defaultIters  = 4096
-	defaultKeyLen = 32
-
-	defaultSaltLen  = 16
 	defaultHashFunc = sha256.New
 )
 
 type Pbkdf2Impl struct {
-	iters  int
-	keyLen int
+	iters   int
+	keyLen  int
+	saltLen int
 
 	salt      []byte
 	deriveKey []byte
 }
 
+func NewPbkdf2Impl(iters, keyLen, saltLen int) *Pbkdf2Impl {
+	impl := &Pbkdf2Impl{
+		iters:   iters,
+		keyLen:  keyLen,
+		saltLen: saltLen,
+	}
+	return impl
+}
+
 func (p *Pbkdf2Impl) DeriveKeyByPassword(password string) (deriveKey []byte, err error) {
-	salt := make([]byte, defaultSaltLen)
+	salt := make([]byte, p.saltLen)
 	_, err = rand.Read(salt)
 	if err != nil {
 		return nil, errors.Wrap(err, "rand.Read error")
@@ -87,7 +93,7 @@ func (p *Pbkdf2Impl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 func (p *Pbkdf2Impl) GetDeriveKeyStr() string {
 	// kdf key format: $argon2$salt$key$iters:keyLen
 	kdfKeyStrs := make([]string, 0)
-	kdfKeyStrs = append(kdfKeyStrs, p.KDFName())
+	kdfKeyStrs = append(kdfKeyStrs, p.Algorithm())
 	encodedSalt := base64.StdEncoding.EncodeToString(p.salt)
 	kdfKeyStrs = append(kdfKeyStrs, encodedSalt)
 	encodedDK := base64.StdEncoding.EncodeToString(p.deriveKey)
@@ -96,24 +102,10 @@ func (p *Pbkdf2Impl) GetDeriveKeyStr() string {
 	return "$" + strings.Join(kdfKeyStrs, "$")
 }
 
-func (p *Pbkdf2Impl) checkParams() {
-	if p.iters <= 0 {
-		p.iters = defaultIters
-	}
-	if p.keyLen <= 0 {
-		p.keyLen = defaultKeyLen
-	}
-}
-
-func (p *Pbkdf2Impl) KDFName() string {
+func (p *Pbkdf2Impl) Algorithm() string {
 	return "pbkdf2"
 }
 
-func New(iterations, keyLen int) *Pbkdf2Impl {
-	impl := &Pbkdf2Impl{
-		iters:  iterations,
-		keyLen: keyLen,
-	}
-	impl.checkParams()
-	return impl
+func (p *Pbkdf2Impl) AlgorithmKind() string {
+	return "kdf"
 }
