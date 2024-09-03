@@ -13,14 +13,8 @@ var symCmd = &cobra.Command{
 	Use:   "sym",
 	Short: "encrypt or decrypt file",
 	Long:  `encrypt or decrypt file with specified algorithm and key.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := checkRequiredFlags(cmd, args); err != nil {
-			panic(err)
-		}
-		if err := runEnc(); err != nil {
-			panic(err)
-		}
-	},
+	//Run: func(cmd *cobra.Command, args []string) {
+	//},
 }
 
 func init() {
@@ -35,12 +29,7 @@ func init() {
 	// is called directly, e.g.:
 	// symCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	symCmd.Flags().StringVarP(&k, "key", "k", "", "Specify the key, hex string")
-
-	symCmd.Flags().BoolVarP(&d, "decrypt", "d", false, "Decrypt the input data")
-
-	symCmd.Flags().BoolVarP(&e, "encrypt", "e", false, "Encrypt the input data")
-
+	symCmd.PersistentFlags().StringVarP(&k, "key", "k", "", "Specify the key, hex string")
 }
 
 var (
@@ -48,8 +37,6 @@ var (
 	out  string
 	algo string
 	k    string
-	d    bool
-	e    bool
 )
 
 var (
@@ -95,7 +82,7 @@ func checkRequiredFlags(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runEnc() error {
+func runEnc(d bool) error {
 	value, exist := crypto.AlgorithmMap[algo]
 	if !exist {
 		return errors.Errorf("unsupported algorithm: %s", algo)
