@@ -10,7 +10,7 @@ package asym
 
 import (
 	"crypto/rand"
-	"github.com/warm3snow/gmsm/sm2"
+	"github.com/tjfoc/gmsm/sm2"
 )
 
 type Sm2WithSm3 struct {

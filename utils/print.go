@@ -11,7 +11,7 @@ package utils
 import "io"
 
 // print s to
-func Print(s []byte, writer io.WriteCloser) error {
+func Print(writer io.WriteCloser, s []byte) error {
 	_, err := writer.Write(s)
 	return err
 }

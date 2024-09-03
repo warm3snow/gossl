@@ -34,6 +34,19 @@ func init() {
 	// is called directly, e.g.:
 	// asymCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	// only for ras and ecdsa
-	keygenCmd.Flags().StringVarP(&dgst, "dgst", "d", "sha256", "Specify the digest algorithm [sha256, sha384, sha512]")
+	asymCmd.PersistentFlags().StringP("key", "k", "", "Specify the key file")
+
+	asymCmd.PersistentFlags().StringP("dgst", "d", "",
+		"Specify the digest algorithm [sm3, sha256, sha384, sha512]")
+}
+
+func verbose(cmd *cobra.Command) bool {
+	v, err := cmd.Parent().Flags().GetBool("verbose")
+	if err != nil {
+		return false
+	}
+	if v {
+		return true
+	}
+	return false
 }

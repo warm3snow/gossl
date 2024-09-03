@@ -8,7 +8,7 @@
 
 package dgst
 
-import "github.com/warm3snow/gmsm/sm3"
+import "github.com/tjfoc/gmsm/sm3"
 
 type Sm3 struct {
 }

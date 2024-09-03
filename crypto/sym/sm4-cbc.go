@@ -8,7 +8,7 @@
 
 package sym
 
-import "github.com/warm3snow/gmsm/sm4"
+import "github.com/tjfoc/gmsm/sm4"
 
 type Sm4Cbc struct {
 }

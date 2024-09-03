@@ -6,8 +6,8 @@ import (
 	"crypto/x509"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/warm3snow/gmsm/sm2"
-	wmx509 "github.com/warm3snow/gmsm/x509"
+	"github.com/tjfoc/gmsm/sm2"
+	tjx509 "github.com/tjfoc/gmsm/x509"
 	"github.com/warm3snow/gossl/crypto"
 	"github.com/warm3snow/gossl/crypto/asym"
 	"github.com/warm3snow/gossl/utils"
@@ -20,11 +20,7 @@ var keygenCmd = &cobra.Command{
 	Short: "generate a random key",
 	Long:  `generate a random asym private key with specified length.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := checkRequiredFlags(cmd, args); err != nil {
-			panic(err)
-		}
-
-		if err := runKeyGen(); err != nil {
+		if err := runKeyGen(cmd); err != nil {
 			panic(err)
 		}
 	},
@@ -51,27 +47,18 @@ func init() {
 }
 
 var (
-	algo      string
-	out       string
 	keyBitLen int
-	dgst      string
 	curve     string
 )
 
-func checkRequiredFlags(cmd *cobra.Command, args []string) error {
-	var err error
-
-	algo, err = cmd.Parent().Flags().GetString("algo")
+func runKeyGen(cmd *cobra.Command) error {
+	algo, err := cmd.Parent().Flags().GetString("algo")
 	if err != nil {
 		return errors.Wrapf(err, "get flag algo failed")
 	}
 
-	out, _ = cmd.Parent().Flags().GetString("out")
+	out, _ := cmd.Parent().Flags().GetString("out")
 
-	return nil
-}
-
-func runKeyGen() error {
 	value, exist := crypto.AlgorithmKeyGenMap[algo]
 	if !exist {
 		return errors.Errorf("unsupported algorithm: %s", algo)
@@ -81,9 +68,7 @@ func runKeyGen() error {
 
 	var (
 		output []byte
-		err    error
 	)
-
 	switch algo {
 	case "rsa":
 		rsaKey, err := keyGen.RSAKeyGen(keyBitLen)
@@ -105,15 +90,15 @@ func runKeyGen() error {
 		if err != nil {
 			return errors.Wrapf(err, "generate sm2 key failed")
 		}
-		output, err = wmx509.MarshalSm2PrivateKey(sm2Key, nil)
+		output, err = tjx509.MarshalSm2PrivateKey(sm2Key, nil)
 		if err != nil {
 			return errors.Wrapf(err, "marshal sm2 key failed")
 		}
 	}
 
-	keyPem := utils.PKey2Pem(output)
+	keyPem := utils.PrivateKey2Pem(output)
 	if out == "" {
-		err = utils.Print(keyPem, os.Stdout)
+		err = utils.Print(os.Stdout, keyPem)
 		if err != nil {
 			return errors.Wrapf(err, "print key failed")
 		}

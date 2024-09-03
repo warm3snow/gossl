@@ -13,7 +13,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
-	"github.com/warm3snow/gmsm/sm2"
+	"github.com/tjfoc/gmsm/sm2"
 )
 
 type KeyGen struct {

@@ -49,7 +49,7 @@ func runKeyGen() error {
 		return err
 	}
 	keyHex := utils.Bytes2Hex(keyBytes)
-	err = utils.Print([]byte(keyHex), os.Stdout)
+	err = utils.Print(os.Stdout, []byte(keyHex))
 	if err != nil {
 		return err
 	}
