@@ -8,7 +8,9 @@
 
 package utils
 
-import "os"
+import (
+	"os"
+)
 
 func ReadFile(fileName string) ([]byte, error) {
 	return os.ReadFile(fileName)

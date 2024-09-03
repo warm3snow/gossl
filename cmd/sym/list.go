@@ -1,4 +1,4 @@
-package cipher
+package sym
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ var listCmd = &cobra.Command{
 }
 
 func init() {
-	encCmd.AddCommand(listCmd)
+	symCmd.AddCommand(listCmd)
 
 	// Here you will define your flags and configuration settings.
 

@@ -1,8 +1,4 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-
-*/
-package dgst
+package asym
 
 import (
 	"fmt"
@@ -13,15 +9,15 @@ import (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "list supported digest algorithms",
-	Long:  `list supported digest algorithms`,
+	Short: "list supported asymmetric algorithms",
+	Long:  `list supported asymmetric algorithms`,
 	Run: func(cmd *cobra.Command, args []string) {
 		listCiphers()
 	},
 }
 
 func init() {
-	dgstCmd.AddCommand(listCmd)
+	asymCmd.AddCommand(listCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -36,7 +32,7 @@ func init() {
 
 func listCiphers() {
 	fmt.Println("Supported ciphers:")
-	for _, algo := range crypto.AlgorithmKindMap["digest"] {
+	for _, algo := range crypto.AlgorithmKindMap["asymmetric"] {
 		fmt.Println(algo.(crypto.CryptoAlgorithm).Algorithm())
 	}
 }

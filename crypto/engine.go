@@ -9,6 +9,7 @@
 package crypto
 
 import (
+	"github.com/warm3snow/gossl/crypto/asym"
 	"github.com/warm3snow/gossl/crypto/dgst"
 	"github.com/warm3snow/gossl/crypto/sym"
 )
@@ -24,6 +25,10 @@ var AlgorithmMap = map[string]interface{}{
 
 	"sha256": &dgst.Sha256{},
 	"sm3":    &dgst.Sm3{},
+
+	"sm2":   &asym.Sm2WithSm3{},
+	"ecdsa": &asym.EccNoHash{},
+	"rsa":   &asym.RsaNoSha256{},
 }
 
 var AlgorithmKindMap = map[string][]interface{}{
@@ -36,4 +41,19 @@ var AlgorithmKindMap = map[string][]interface{}{
 		&dgst.Sha256{},
 		&dgst.Sm3{},
 	},
+
+	"asymmetric": {
+		&asym.Sm2WithSm3{},
+		&asym.EccNoHash{},
+		&asym.RsaNoSha256{},
+	},
+}
+
+var AlgorithmKeyGenMap = map[string]interface{}{
+	"rsa":   &asym.KeyGen{},
+	"sm2":   &asym.KeyGen{},
+	"ecdsa": &asym.KeyGen{},
+
+	"sm4-cbc":     &sym.KeyGen{},
+	"aes-256-cbc": &sym.KeyGen{},
 }

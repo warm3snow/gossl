@@ -1,4 +1,4 @@
-package cipher
+package sym
 
 import (
 	"github.com/pkg/errors"
@@ -8,9 +8,9 @@ import (
 	"github.com/warm3snow/gossl/utils"
 )
 
-// encCmd represents the enc command
-var encCmd = &cobra.Command{
-	Use:   "enc",
+// symCmd represents the sym command
+var symCmd = &cobra.Command{
+	Use:   "sym",
 	Short: "encrypt or decrypt file",
 	Long:  `encrypt or decrypt file with specified algorithm and key.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -29,15 +29,18 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// encCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// symCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// encCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// symCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	encCmd.Flags().StringVarP(&k, "key", "k", "", "Specify the key, hex string")
+	symCmd.Flags().StringVarP(&k, "key", "k", "", "Specify the key, hex string")
 
-	encCmd.Flags().BoolVarP(&d, "decrypt", "d", false, "Decrypt the input data")
+	symCmd.Flags().BoolVarP(&d, "decrypt", "d", false, "Decrypt the input data")
+
+	symCmd.Flags().BoolVarP(&e, "encrypt", "e", false, "Encrypt the input data")
+
 }
 
 var (
@@ -46,6 +49,7 @@ var (
 	algo string
 	k    string
 	d    bool
+	e    bool
 )
 
 var (
@@ -53,8 +57,8 @@ var (
 	key   []byte
 )
 
-func EncCmd() *cobra.Command {
-	return encCmd
+func SymCmd() *cobra.Command {
+	return symCmd
 }
 
 func checkRequiredFlags(cmd *cobra.Command, args []string) error {

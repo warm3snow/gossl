@@ -2,7 +2,7 @@
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 
 */
-package cipher
+package sym
 
 import (
 	"github.com/spf13/cobra"
@@ -24,7 +24,7 @@ var keygenCmd = &cobra.Command{
 }
 
 func init() {
-	encCmd.AddCommand(keygenCmd)
+	symCmd.AddCommand(keygenCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -36,7 +36,7 @@ func init() {
 	// is called directly, e.g.:
 	// keygenCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	len = keygenCmd.Flags().IntP("len", "l", 32, "Specify the key length [16, 24, 32]")
+	len = keygenCmd.Flags().IntP("len", "l", 16, "Specify the key length [16, 24, 32]")
 }
 
 var (
