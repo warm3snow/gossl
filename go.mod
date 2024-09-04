@@ -3,6 +3,7 @@ module github.com/warm3snow/gossl
 go 1.22.4
 
 require (
+	chainmaker.org/chainmaker/common/v2 v2.3.4
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
@@ -11,8 +12,10 @@ require (
 )
 
 require (
+	github.com/btcsuite/btcd v0.21.0-beta // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
