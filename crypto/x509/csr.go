@@ -9,8 +9,9 @@
 package x509
 
 import (
-	"encoding/json"
+	"bytes"
 	"encoding/pem"
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/tjfoc/gmsm/x509"
 )
@@ -40,11 +41,12 @@ func (x CSR) ParseCsrToText(csrPem string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	csrJson, err := json.MarshalIndent(csr, "", "  ")
-	if err != nil {
-		return nil, err
-	}
-	return csrJson, nil
+	//csrJson, err := json.MarshalIndent(csr, "", "  ")
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	return FormatCsr2Text(csr)
 }
 
 func (x CSR) Algorithm() string {
@@ -53,4 +55,31 @@ func (x CSR) Algorithm() string {
 
 func (x CSR) AlgorithmKind() string {
 	return "x509"
+}
+
+func FormatCsr2Text(csr *x509.CertificateRequest) ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteString("Certificate Request:\n")
+	buf.WriteString("    Data:\n")
+	buf.WriteString(fmt.Sprintf("        Version: %d (0x%x)\n", csr.Version, csr.Version))
+	buf.WriteString(fmt.Sprintf("        Subject: %s\n", FormatPKIXName(csr.Subject)))
+	buf.WriteString("        Subject Public Key Info:\n")
+	buf.WriteString(fmt.Sprintf("            Public Key Algorithm: %s\n", csr.PublicKeyAlgorithm))
+
+	// format public key
+	FormatPKToBuffer(csr.PublicKey, &buf)
+
+	buf.WriteString("        Attributes:\n")
+	for _, attr := range csr.Attributes {
+		buf.WriteString(fmt.Sprintf("            %s: %s\n", attr.Type, attr.Value))
+	}
+	buf.WriteString("            Requested Extensions:\n")
+	for _, ext := range csr.Extensions {
+		buf.WriteString(fmt.Sprintf("                %s: %s\n", ext.Id, string(ext.Value)))
+	}
+	buf.WriteString(fmt.Sprintf("    Signature Algorithm: %s\n", csr.SignatureAlgorithm))
+	buf.WriteString("    Signature Value:\n")
+	buf.WriteString(fmt.Sprintf("        %x\n", csr.Signature))
+
+	return buf.Bytes(), nil
 }
