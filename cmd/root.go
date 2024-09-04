@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"github.com/warm3snow/gossl/cmd/asym"
 	"github.com/warm3snow/gossl/cmd/dgst"
+	"github.com/warm3snow/gossl/cmd/encode"
 	"github.com/warm3snow/gossl/cmd/kdf"
 	"github.com/warm3snow/gossl/cmd/sym"
-	"github.com/warm3snow/gossl/cmd/x509"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -46,7 +46,8 @@ func init() {
 	rootCmd.AddCommand(dgst.DgstCmd())
 	rootCmd.AddCommand(asym.AsymCmd())
 	rootCmd.AddCommand(kdf.KdfCmd())
-	rootCmd.AddCommand(x509.X509Cmd())
+	rootCmd.AddCommand(encode.X509Cmd())
+	rootCmd.AddCommand(encode.ReqCmd())
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,

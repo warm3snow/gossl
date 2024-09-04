@@ -54,7 +54,7 @@ func (x CSR) Algorithm() string {
 }
 
 func (x CSR) AlgorithmKind() string {
-	return "x509"
+	return "encode"
 }
 
 func FormatCsr2Text(csr *x509.CertificateRequest) ([]byte, error) {

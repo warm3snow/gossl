@@ -25,7 +25,7 @@ const (
 	Ecdsa Algorithm = "ecdsa"
 	Rsa   Algorithm = "rsa"
 
-	X509 Algorithm = "x509"
+	X509 Algorithm = "encode"
 	CSR  Algorithm = "csr"
 )
 
@@ -39,5 +39,5 @@ const (
 	Symmetric  AlgorithmKind = "symmetric"
 	Digest     AlgorithmKind = "digest"
 	Asymmetric AlgorithmKind = "asymmetric"
-	X509Kind   AlgorithmKind = "x509"
+	X509Kind   AlgorithmKind = "encode"
 )
