@@ -64,7 +64,7 @@ func FormatCsr2Text(csr *x509.CertificateRequest) ([]byte, error) {
 	buf.WriteString(fmt.Sprintf("        Version: %d (0x%x)\n", csr.Version, csr.Version))
 	buf.WriteString(fmt.Sprintf("        Subject: %s\n", FormatPKIXName(csr.Subject)))
 	buf.WriteString("        Subject Public Key Info:\n")
-	buf.WriteString(fmt.Sprintf("            Public Key Algorithm: %s\n", csr.PublicKeyAlgorithm))
+	buf.WriteString(fmt.Sprintf("            Public Key Algorithm: %s\n", PublicKeyAlgorithmName[int(csr.PublicKeyAlgorithm)]))
 
 	// format public key
 	FormatPKToBuffer(csr.PublicKey, &buf)
