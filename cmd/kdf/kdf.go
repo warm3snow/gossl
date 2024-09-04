@@ -5,8 +5,6 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package kdf
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -15,9 +13,9 @@ var kdfCmd = &cobra.Command{
 	Use:   "kdf",
 	Short: "key derivation function",
 	Long:  `key derivation function is a function that derives a secret key from a secret password.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("kdf called")
-	},
+	//Run: func(cmd *cobra.Command, args []string) {
+	//	fmt.Println("kdf called")
+	//},
 }
 
 func KdfCmd() *cobra.Command {

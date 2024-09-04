@@ -8,7 +8,10 @@
 
 package sym
 
-import "github.com/tjfoc/gmsm/sm4"
+import (
+	"github.com/tjfoc/gmsm/sm4"
+	_const "github.com/warm3snow/gossl/crypto/const"
+)
 
 type Sm4Cbc struct {
 }
@@ -25,10 +28,10 @@ func (s *Sm4Cbc) Decrypt(key, cipherText []byte) ([]byte, error) {
 	return sm4.Sm4Cbc(key, cipherText, false)
 }
 
-func (s *Sm4Cbc) Algorithm() string {
-	return "sm4-cbc"
+func (s *Sm4Cbc) Algorithm() _const.Algorithm {
+	return _const.Sm4Cbc
 }
 
-func (s *Sm4Cbc) AlgorithmKind() string {
-	return "symmetric"
+func (s *Sm4Cbc) AlgorithmKind() _const.AlgorithmKind {
+	return _const.Symmetric
 }

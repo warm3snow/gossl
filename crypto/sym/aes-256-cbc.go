@@ -13,6 +13,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"github.com/pkg/errors"
+	_const "github.com/warm3snow/gossl/crypto/const"
 	"github.com/warm3snow/gossl/utils"
 	"io"
 )
@@ -63,10 +64,10 @@ func (a *Aes256Cbc) Decrypt(key, cipherText []byte) ([]byte, error) {
 	return utils.Unpad(cipherText)
 }
 
-func (a *Aes256Cbc) Algorithm() string {
-	return "aes-256-cbc"
+func (a *Aes256Cbc) Algorithm() _const.Algorithm {
+	return _const.Aes256Cbc
 }
 
-func (a *Aes256Cbc) AlgorithmKind() string {
-	return "symmetric"
+func (a *Aes256Cbc) AlgorithmKind() _const.AlgorithmKind {
+	return _const.Symmetric
 }

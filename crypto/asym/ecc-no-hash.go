@@ -12,6 +12,7 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rand"
+	_const "github.com/warm3snow/gossl/crypto/const"
 )
 
 type EccNoHash struct {
@@ -29,10 +30,10 @@ func (e *EccNoHash) Verify(data, signature []byte, key *ecdsa.PublicKey, signerO
 	return ecdsa.VerifyASN1(key, data, signature)
 }
 
-func (e *EccNoHash) Algorithm() string {
-	return "ecdsa"
+func (e *EccNoHash) Algorithm() _const.Algorithm {
+	return _const.Ecdsa
 }
 
-func (e *EccNoHash) AlgorithmKind() string {
-	return "asymmetric"
+func (e *EccNoHash) AlgorithmKind() _const.AlgorithmKind {
+	return _const.Asymmetric
 }

@@ -12,6 +12,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	_const "github.com/warm3snow/gossl/crypto/const"
 )
 
 type RsaNoSha256 struct {
@@ -34,10 +35,10 @@ func (r *RsaNoSha256) Verify(data, signature []byte, key *rsa.PublicKey, signerO
 	}
 }
 
-func (r *RsaNoSha256) Algorithm() string {
-	return "rsa"
+func (r *RsaNoSha256) Algorithm() _const.Algorithm {
+	return _const.Rsa
 }
 
-func (r *RsaNoSha256) AlgorithmKind() string {
-	return "asymmetric"
+func (r *RsaNoSha256) AlgorithmKind() _const.AlgorithmKind {
+	return _const.Asymmetric
 }

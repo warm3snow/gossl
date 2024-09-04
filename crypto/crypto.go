@@ -10,42 +10,52 @@ package crypto
 
 import (
 	"github.com/warm3snow/gossl/crypto/asym"
+	_const "github.com/warm3snow/gossl/crypto/const"
 	"github.com/warm3snow/gossl/crypto/dgst"
 	"github.com/warm3snow/gossl/crypto/sym"
+	"github.com/warm3snow/gossl/crypto/x509"
 )
 
 type CryptoAlgorithm interface {
-	Algorithm() string
-	AlgorithmKind() string
+	Algorithm() _const.Algorithm
+	AlgorithmKind() _const.AlgorithmKind
 }
 
 var AlgorithmMap = map[string]interface{}{
-	"sm4-cbc":     &sym.Sm4Cbc{},
-	"aes-256-cbc": &sym.Aes256Cbc{},
+	_const.Sm4Cbc.String():    &sym.Sm4Cbc{},
+	_const.Aes256Cbc.String(): &sym.Aes256Cbc{},
 
-	"sha256": &dgst.Sha256{},
-	"sm3":    &dgst.Sm3{},
+	_const.Sha256.String(): &dgst.Sha256{},
+	_const.Sm3.String():    &dgst.Sm3{},
 
-	"sm2":   &asym.Sm2WithSm3{},
-	"ecdsa": &asym.EccNoHash{},
-	"rsa":   &asym.RsaNoSha256{},
+	_const.Sm2.String():   &asym.Sm2WithSm3{},
+	_const.Ecdsa.String(): &asym.EccNoHash{},
+	_const.Rsa.String():   &asym.RsaNoSha256{},
+
+	_const.X509.String(): &x509.X509Cert{},
+	_const.CSR.String():  &x509.CSR{},
 }
 
 var AlgorithmKindMap = map[string][]interface{}{
-	"symmetric": {
+	_const.Symmetric.String(): {
 		&sym.Sm4Cbc{},
 		&sym.Aes256Cbc{},
 	},
 
-	"digest": {
+	_const.Digest.String(): {
 		&dgst.Sha256{},
 		&dgst.Sm3{},
 	},
 
-	"asymmetric": {
+	_const.Asymmetric.String(): {
 		&asym.Sm2WithSm3{},
 		&asym.EccNoHash{},
 		&asym.RsaNoSha256{},
+	},
+
+	_const.X509.String(): {
+		&x509.X509Cert{},
+		&x509.CSR{},
 	},
 }
 

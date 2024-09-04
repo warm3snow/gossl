@@ -31,7 +31,7 @@ func init() {
 }
 
 func listCiphers() {
-	fmt.Println("Supported asymmetric algorithms:")
+	fmt.Println("Supported asymmetric algorithm list:")
 	for _, algo := range crypto.AlgorithmKindMap["asymmetric"] {
 		fmt.Println(algo.(crypto.CryptoAlgorithm).Algorithm())
 	}

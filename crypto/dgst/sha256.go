@@ -8,7 +8,10 @@
 
 package dgst
 
-import "crypto/sha256"
+import (
+	"crypto/sha256"
+	_const "github.com/warm3snow/gossl/crypto/const"
+)
 
 type Sha256 struct {
 }
@@ -18,10 +21,10 @@ func (s *Sha256) Sum(data []byte) []byte {
 	return d[:]
 }
 
-func (s *Sha256) Algorithm() string {
-	return "sha256"
+func (s *Sha256) Algorithm() _const.Algorithm {
+	return _const.Sha256
 }
 
-func (s *Sha256) AlgorithmKind() string {
-	return "digest"
+func (s *Sha256) AlgorithmKind() _const.AlgorithmKind {
+	return _const.Digest
 }

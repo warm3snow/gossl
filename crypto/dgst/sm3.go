@@ -8,7 +8,10 @@
 
 package dgst
 
-import "github.com/tjfoc/gmsm/sm3"
+import (
+	"github.com/tjfoc/gmsm/sm3"
+	_const "github.com/warm3snow/gossl/crypto/const"
+)
 
 type Sm3 struct {
 }
@@ -17,10 +20,10 @@ func (s Sm3) Sum(data []byte) []byte {
 	return sm3.Sm3Sum(data)
 }
 
-func (s Sm3) Algorithm() string {
-	return "sm3"
+func (s Sm3) Algorithm() _const.Algorithm {
+	return _const.Sm3
 }
 
-func (s Sm3) AlgorithmKind() string {
-	return "digest"
+func (s Sm3) AlgorithmKind() _const.AlgorithmKind {
+	return _const.Digest
 }

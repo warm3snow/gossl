@@ -10,6 +10,7 @@ import (
 	tjx509 "github.com/tjfoc/gmsm/x509"
 	"github.com/warm3snow/gossl/crypto"
 	"github.com/warm3snow/gossl/crypto/asym"
+	_const "github.com/warm3snow/gossl/crypto/const"
 	"github.com/warm3snow/gossl/utils"
 	"os"
 )
@@ -70,13 +71,13 @@ func runKeyGen(cmd *cobra.Command) error {
 		output []byte
 	)
 	switch algo {
-	case "rsa":
+	case _const.Rsa.String():
 		rsaKey, err := keyGen.RSAKeyGen(keyBitLen)
 		if err != nil {
 			return errors.Wrapf(err, "generate rsa key failed")
 		}
 		output, err = x509.MarshalPKCS8PrivateKey(rsaKey)
-	case "ecdsa":
+	case _const.Ecdsa.String():
 		ecdsaKey, err := keyGen.ECDSAKeyGen(curveToNamedCurve(curve))
 		if err != nil {
 			return errors.Wrapf(err, "generate ecdsa key failed")
@@ -85,7 +86,7 @@ func runKeyGen(cmd *cobra.Command) error {
 		if err != nil {
 			return errors.Wrapf(err, "marshal ecdsa key failed")
 		}
-	case "sm2":
+	case _const.Sm2.String():
 		sm2Key, err := keyGen.SM2KeyGen()
 		if err != nil {
 			return errors.Wrapf(err, "generate sm2 key failed")

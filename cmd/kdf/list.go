@@ -32,7 +32,7 @@ func init() {
 }
 
 func listCiphers() {
-	fmt.Println("Supported kdf algorithms:")
+	fmt.Println("Supported kdf algorithm list:")
 	for _, algo := range kdf.AlgorithmKindMap["kdf"] {
 		fmt.Println(algo.(crypto.CryptoAlgorithm).Algorithm())
 	}

@@ -11,6 +11,7 @@ package asym
 import (
 	"crypto/rand"
 	"github.com/tjfoc/gmsm/sm2"
+	_const "github.com/warm3snow/gossl/crypto/const"
 )
 
 type Sm2WithSm3 struct {
@@ -28,10 +29,10 @@ func (s *Sm2WithSm3) Verify(data, signature []byte, key *sm2.PublicKey) bool {
 	return key.Verify(data, signature)
 }
 
-func (s *Sm2WithSm3) Algorithm() string {
-	return "sm2"
+func (s *Sm2WithSm3) Algorithm() _const.Algorithm {
+	return _const.Sm2
 }
 
-func (s *Sm2WithSm3) AlgorithmKind() string {
-	return "asymmetric"
+func (s *Sm2WithSm3) AlgorithmKind() _const.AlgorithmKind {
+	return _const.Asymmetric
 }
