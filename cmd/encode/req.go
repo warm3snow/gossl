@@ -6,7 +6,7 @@ package encode
 
 import (
 	"github.com/pkg/errors"
-	"github.com/warm3snow/gossl/crypto/x509"
+	"github.com/tjfoc/gmsm/x509"
 	"github.com/warm3snow/gossl/utils"
 	"os"
 

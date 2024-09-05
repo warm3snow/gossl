@@ -11,6 +11,7 @@ import (
 	"github.com/warm3snow/gossl/cmd/encode"
 	"github.com/warm3snow/gossl/cmd/kdf"
 	"github.com/warm3snow/gossl/cmd/sym"
+	"github.com/warm3snow/gossl/cmd/tls"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -48,6 +49,7 @@ func init() {
 	rootCmd.AddCommand(kdf.KdfCmd())
 	rootCmd.AddCommand(encode.X509Cmd())
 	rootCmd.AddCommand(encode.ReqCmd())
+	rootCmd.AddCommand(tls.TLSCommand())
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
@@ -62,11 +64,11 @@ func init() {
 	// verbose
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
 
-	rootCmd.PersistentFlags().String("in", "", "The input file")
+	rootCmd.PersistentFlags().StringP("in", "i", "", "The input file")
 
-	rootCmd.PersistentFlags().String("out", "", "The output file")
+	rootCmd.PersistentFlags().StringP("out", "o", "", "The output file")
 
-	rootCmd.PersistentFlags().String("algo", "a", "Specify the supported algorithm")
+	rootCmd.PersistentFlags().StringP("algo", "a", "", "Specify the supported algorithm")
 
 }
 
