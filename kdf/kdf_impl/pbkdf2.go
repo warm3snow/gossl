@@ -15,6 +15,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/pkg/errors"
+	_const "github.com/warm3snow/gossl/crypto/const"
 	"golang.org/x/crypto/pbkdf2"
 	"strconv"
 	"strings"
@@ -93,7 +94,7 @@ func (p *Pbkdf2Impl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 func (p *Pbkdf2Impl) GetDeriveKeyStr() string {
 	// kdf key format: $argon2$salt$key$iters:keyLen
 	kdfKeyStrs := make([]string, 0)
-	kdfKeyStrs = append(kdfKeyStrs, p.Algorithm())
+	kdfKeyStrs = append(kdfKeyStrs, p.Algorithm().String())
 	encodedSalt := base64.StdEncoding.EncodeToString(p.salt)
 	kdfKeyStrs = append(kdfKeyStrs, encodedSalt)
 	encodedDK := base64.StdEncoding.EncodeToString(p.deriveKey)
@@ -102,10 +103,10 @@ func (p *Pbkdf2Impl) GetDeriveKeyStr() string {
 	return "$" + strings.Join(kdfKeyStrs, "$")
 }
 
-func (p *Pbkdf2Impl) Algorithm() string {
+func (p *Pbkdf2Impl) Algorithm() _const.Algorithm {
 	return "pbkdf2"
 }
 
-func (p *Pbkdf2Impl) AlgorithmKind() string {
+func (p *Pbkdf2Impl) AlgorithmKind() _const.AlgorithmKind {
 	return "kdf"
 }

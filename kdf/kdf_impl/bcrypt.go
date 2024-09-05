@@ -10,6 +10,7 @@ package kdf_impl
 
 import (
 	"github.com/pkg/errors"
+	_const "github.com/warm3snow/gossl/crypto/const"
 	"golang.org/x/crypto/bcrypt"
 	"strings"
 )
@@ -34,10 +35,10 @@ func (b *BcryptImpl) DeriveKeyByPassword(password string) (deriveKey []byte, err
 
 func (b *BcryptImpl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk bool, err error) {
 	kdfKeyStr = strings.TrimPrefix(kdfKeyStr, "$")
-	if !strings.HasPrefix(kdfKeyStr, b.Algorithm()) {
+	if !strings.HasPrefix(kdfKeyStr, b.Algorithm().String()) {
 		return false, errors.New("kdfKeyStr format error, not bcrypt")
 	}
-	kdfKeyStr = strings.TrimPrefix(kdfKeyStr, b.Algorithm())
+	kdfKeyStr = strings.TrimPrefix(kdfKeyStr, b.Algorithm().String())
 	err = bcrypt.CompareHashAndPassword([]byte(kdfKeyStr), password)
 	if err != nil {
 		return false, errors.Wrap(err, "bcrypt.CompareHashAndPassword error")
@@ -47,13 +48,13 @@ func (b *BcryptImpl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 
 func (b *BcryptImpl) GetDeriveKeyStr() string {
 	// key format: $bcrypt$bcrpytFormatKey
-	return "$" + b.Algorithm() + string(b.deriveKey)
+	return "$" + b.Algorithm().String() + string(b.deriveKey)
 }
 
-func (b *BcryptImpl) Algorithm() string {
+func (b *BcryptImpl) Algorithm() _const.Algorithm {
 	return "bcrypt"
 }
 
-func (b *BcryptImpl) AlgorithmKind() string {
+func (b *BcryptImpl) AlgorithmKind() _const.AlgorithmKind {
 	return "kdf"
 }

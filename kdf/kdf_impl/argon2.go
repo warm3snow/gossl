@@ -14,6 +14,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/pkg/errors"
+	_const "github.com/warm3snow/gossl/crypto/const"
 	"golang.org/x/crypto/argon2"
 	"strconv"
 	"strings"
@@ -59,7 +60,7 @@ func (a *Argon2Impl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 	if len(kdfKeyStrs) != 4 {
 		return false, errors.New("kdfKeyStr format error, not 4 parts")
 	}
-	if kdfKeyStrs[0] != a.Algorithm() {
+	if kdfKeyStrs[0] != a.Algorithm().String() {
 		return false, errors.New("kdfKeyStr format error, not argon2")
 	}
 	salt, err := base64.StdEncoding.DecodeString(kdfKeyStrs[1])
@@ -105,7 +106,7 @@ func (a *Argon2Impl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 func (a *Argon2Impl) GetDeriveKeyStr() string {
 	// format: $argon2$salt$key$time:memory:threads:keyLen
 	kdfKeyStrs := make([]string, 0)
-	kdfKeyStrs = append(kdfKeyStrs, a.Algorithm())
+	kdfKeyStrs = append(kdfKeyStrs, a.Algorithm().String())
 	encodedSalt := base64.StdEncoding.EncodeToString(a.salt)
 	kdfKeyStrs = append(kdfKeyStrs, fmt.Sprintf("%s", encodedSalt))
 	encodedDK := base64.StdEncoding.EncodeToString(a.deriveKey)
@@ -118,10 +119,10 @@ func (a *Argon2Impl) GetDeriveKey() []byte {
 	return a.deriveKey
 }
 
-func (a *Argon2Impl) Algorithm() string {
+func (a *Argon2Impl) Algorithm() _const.Algorithm {
 	return "argon2"
 }
 
-func (a *Argon2Impl) AlgorithmKind() string {
+func (a *Argon2Impl) AlgorithmKind() _const.AlgorithmKind {
 	return "kdf"
 }

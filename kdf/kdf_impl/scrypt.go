@@ -14,6 +14,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/pkg/errors"
+	_const "github.com/warm3snow/gossl/crypto/const"
 	"golang.org/x/crypto/scrypt"
 	"strconv"
 	"strings"
@@ -67,7 +68,7 @@ func (s *ScryptImpl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 	if len(kdfKeyStrs) != 4 {
 		return false, errors.New("kdfKeyStr format error, not 4 parts")
 	}
-	if kdfKeyStrs[0] != s.Algorithm() {
+	if kdfKeyStrs[0] != s.Algorithm().String() {
 		return false, errors.New("kdfKeyStr format error, not scrypt")
 	}
 	salt, err := base64.StdEncoding.DecodeString(kdfKeyStrs[1])
@@ -111,7 +112,7 @@ func (s *ScryptImpl) VerifyDeriveKeyStr(kdfKeyStr string, password []byte) (isOk
 func (s *ScryptImpl) GetDeriveKeyStr() string {
 	// kdf key format: $scrypt$$salt$key$n:r:p:keyLen
 	kdfKeyStrs := make([]string, 0)
-	kdfKeyStrs = append(kdfKeyStrs, s.Algorithm())
+	kdfKeyStrs = append(kdfKeyStrs, s.Algorithm().String())
 	encodedSalt := base64.StdEncoding.EncodeToString(s.salt)
 	kdfKeyStrs = append(kdfKeyStrs, encodedSalt)
 	encodedDK := base64.StdEncoding.EncodeToString(s.deriveKey)
@@ -120,10 +121,10 @@ func (s *ScryptImpl) GetDeriveKeyStr() string {
 	return "$" + strings.Join(kdfKeyStrs, "$")
 }
 
-func (s *ScryptImpl) Algorithm() string {
+func (s *ScryptImpl) Algorithm() _const.Algorithm {
 	return "scrypt"
 }
 
-func (s *ScryptImpl) AlgorithmKind() string {
+func (s *ScryptImpl) AlgorithmKind() _const.AlgorithmKind {
 	return "kdf"
 }
