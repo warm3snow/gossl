@@ -60,10 +60,10 @@ var AlgorithmKindMap = map[string][]interface{}{
 }
 
 var AlgorithmKeyGenMap = map[string]interface{}{
-	"rsa":   &asym.KeyGen{},
-	"sm2":   &asym.KeyGen{},
-	"ecdsa": &asym.KeyGen{},
+	_const.Rsa.String():   &asym.KeyGen{},
+	_const.Sm2.String():   &asym.KeyGen{},
+	_const.Ecdsa.String(): &asym.KeyGen{},
 
-	"sm4-cbc":     &sym.KeyGen{},
-	"aes-256-cbc": &sym.KeyGen{},
+	_const.Sm4Cbc.String():    &sym.KeyGen{},
+	_const.Aes256Cbc.String(): &sym.KeyGen{},
 }
