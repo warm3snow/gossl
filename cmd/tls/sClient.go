@@ -37,10 +37,12 @@ func init() {
 	// sClientCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	sClientCmd.Flags().StringVarP(&connect, "connect", "c", "", "server address to connect")
+	sClientCmd.PersistentFlags().BoolVarP(&skipVerify, "skip_verify", "", true, "skip verify")
 }
 
 var (
-	connect string
+	connect    string
+	skipVerify bool
 )
 
 func runClient(cmd *cobra.Command) error {
@@ -48,6 +50,15 @@ func runClient(cmd *cobra.Command) error {
 	if err != nil {
 		return err
 	}
+
+	if skipVerify {
+		cfg.InsecureSkipVerify = true
+	}
+
+	if connect == "" {
+		return errors.New("server address is required")
+	}
+
 	conn, err := net.Dial("tcp", connect)
 	if err != nil {
 		return errors.Wrap(err, "failed to connect server")

@@ -23,6 +23,7 @@ import (
 	"crypto/subtle"
 	"errors"
 	"fmt"
+	localX509 "github.com/warm3snow/gossl/crypto/x509"
 	"io"
 	"net"
 	"strconv"
@@ -30,7 +31,6 @@ import (
 	"sync/atomic"
 
 	"github.com/tjfoc/gmsm/x509"
-	localX509 "github.com/warm3snow/gossl/crypto/x509"
 )
 
 type clientHandshakeState struct {
@@ -281,6 +281,7 @@ func (hs *clientHandshakeState) handshake() error {
 		if err := hs.doFullHandshake(); err != nil {
 			return err
 		}
+
 		if err := hs.establishKeys(); err != nil {
 			return err
 		}
@@ -407,15 +408,29 @@ func (hs *clientHandshakeState) doFullHandshake() error {
 		}
 	}
 
-	// print certificate chain, only subject
-	fmt.Printf("---\n")
-	fmt.Printf("Certificate chain:\n")
-	for _, cert := range c.peerCertificates {
-		fmt.Printf("Subject: %s\n", localX509.FormatPKIXName(cert.Subject))
+	// DEBUG NOTE: print server certificate
+	{
+		//print server address
+		fmt.Printf("Connecting to: %s\n", c.conn.RemoteAddr())
+		fmt.Printf("Negotiated TLS Version: %s\n", versMapping[hs.serverHello.vers])
+		fmt.Printf("Negotiated cipher suite: %s\n", tlsCipherSuites[hs.serverHello.cipherSuite])
+
+		// print certificate chain, only subject
+		fmt.Printf("---\n")
+		fmt.Printf("Certificate chain:\n")
+		for i, cert := range c.peerCertificates {
+			fmt.Printf("Depth: %d\n", i)
+			fmt.Printf(" Subject: %s\n", localX509.FormatPKIXName(cert.Subject))
+			fmt.Printf(" Issuer: %s\n", localX509.FormatPKIXName(cert.Issuer))
+			fmt.Printf(" Valid Between: %s; %s\n", cert.NotBefore, cert.NotAfter)
+		}
+		//print server certificate
+		fmt.Printf("---\n")
+		fmt.Printf("Server certificate:\n")
+		fmt.Printf(string(localX509.CertToPem(c.peerCertificates[0])))
+		fmt.Printf("Subject: %s\n", localX509.FormatPKIXName(c.peerCertificates[0].Subject))
+		fmt.Printf("Issuer: %s\n", localX509.FormatPKIXName(c.peerCertificates[0].Issuer))
 	}
-	//print server certificate
-	fmt.Printf("Server certificate:\n")
-	fmt.Printf("Subject: %s\n", localX509.FormatPKIXName(c.peerCertificates[0].Subject))
 
 	msg, err = c.readHandshake()
 	if err != nil {
@@ -464,6 +479,12 @@ func (hs *clientHandshakeState) doFullHandshake() error {
 		}
 	}
 
+	// DEBUG NOTE: print server key exchange message verify result
+	{
+		fmt.Printf("---\n")
+		fmt.Printf("Verification: OK\n")
+	}
+
 	var chainToSend *Certificate
 	var certRequested bool
 	certReq, ok := msg.(*certificateRequestMsg)
@@ -498,6 +519,15 @@ func (hs *clientHandshakeState) doFullHandshake() error {
 		hs.finishedHash.Write(certMsg.marshal())
 		if _, err := c.writeRecord(recordTypeHandshake, certMsg.marshal()); err != nil {
 			return err
+		}
+
+		// DEBUG NOTE: print ChainToSend
+		{
+			fmt.Printf("---\n")
+			fmt.Printf("Chain To Send:\n")
+			fmt.Printf("%s\n", localX509.CertToPem(chainToSend.Leaf))
+			fmt.Printf("Subject: %s\n", localX509.FormatPKIXName(chainToSend.Leaf.Subject))
+			fmt.Printf("Issuer: %s\n", localX509.FormatPKIXName(chainToSend.Leaf.Issuer))
 		}
 	}
 
@@ -560,6 +590,16 @@ func (hs *clientHandshakeState) doFullHandshake() error {
 		return errors.New("tls: failed to write to key log: " + err.Error())
 	}
 
+	// DEBUG NOTE: print master secret
+	{
+		fmt.Printf("---\n")
+		fmt.Printf("Master Secret:\n")
+		fmt.Printf("Client Random: %x\n", hs.hello.random)
+		fmt.Printf("Server Random: %x\n", hs.serverHello.random)
+		fmt.Printf("Pre Master Secret: %x\n", preMasterSecret)
+		fmt.Printf("Master Secret: %x\n", hs.masterSecret)
+	}
+
 	hs.finishedHash.discardHandshakeBuffer()
 
 	return nil
@@ -584,6 +624,19 @@ func (hs *clientHandshakeState) establishKeys() error {
 
 	c.in.prepareCipherSpec(c.vers, serverCipher, serverHash)
 	c.out.prepareCipherSpec(c.vers, clientCipher, clientHash)
+
+	// DEBUG NOTE: print key material
+	{
+		fmt.Printf("---\n")
+		fmt.Printf("Key Material:\n")
+		fmt.Printf("Client MAC: %x\n", clientMAC)
+		fmt.Printf("Server MAC: %x\n", serverMAC)
+		fmt.Printf("Client Key: %x\n", clientKey)
+		fmt.Printf("Server Key: %x\n", serverKey)
+		fmt.Printf("Client IV: %x\n", clientIV)
+		fmt.Printf("Server IV: %x\n", serverIV)
+	}
+
 	return nil
 }
 
@@ -720,6 +773,26 @@ func (hs *clientHandshakeState) readSessionTicket() error {
 		masterSecret:       hs.masterSecret,
 		serverCertificates: c.peerCertificates,
 		verifiedChains:     c.verifiedChains,
+	}
+
+	// DEBUG NOTE: print session ticket
+	{
+		fmt.Printf("---\n")
+		fmt.Printf("Session Ticket:\n")
+		fmt.Printf("Ticket: %x\n", sessionTicketMsg.ticket)
+		fmt.Printf("Version: %s\n", versMapping[hs.session.vers])
+		fmt.Printf("Cipher Suite: %s\n", tlsCipherSuites[hs.session.cipherSuite])
+		fmt.Printf("Master Secret: %x\n", hs.masterSecret)
+		fmt.Printf("Server Certificates:\n")
+		for _, cert := range hs.session.serverCertificates {
+			fmt.Printf("%s\n", localX509.CertToPem(cert))
+		}
+		fmt.Printf("Verified Chains:\n")
+		for _, chain := range hs.session.verifiedChains {
+			for _, cert := range chain {
+				fmt.Printf("%s\n", localX509.CertToPem(cert))
+			}
+		}
 	}
 
 	return nil

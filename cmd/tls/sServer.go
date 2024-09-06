@@ -6,8 +6,10 @@ package tls
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	cmtls "github.com/warm3snow/gossl/crypto/gmtls"
+	"net/http"
 )
 
 // sServerCmd represents the sServer command
@@ -50,13 +52,14 @@ func runServer(cmd *cobra.Command) error {
 		return err
 	}
 	ln, err := cmtls.Listen("tcp", fmt.Sprintf(":%d", accept), cfg)
+	if err != nil {
+		return errors.Wrap(err, "failed to listen")
+	}
 	defer ln.Close()
 
-	//lis := cmtls.NewListener(ln, cfg)
-	//lis.
-	//
-	//mux := cmtls.NewServeMux()
-	//mux.HandleFunc("/", sayHello)
-	//
-	//err = http.Serve(ln, mux)
+	return http.Serve(ln, http.HandlerFunc(sayHello))
+}
+
+func sayHello(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Hello, gossl!"))
 }

@@ -46,25 +46,19 @@ func init() {
 
 	tlsCmd.PersistentFlags().String("enc_cert", "", "encrypt certificate file")
 	tlsCmd.PersistentFlags().String("enc_key", "", "encrypt private key file")
-	tlsCmd.PersistentFlags().Bool("skip_verify", true, "skip verify")
 
 	tlsCmd.PersistentFlags().String("tls_version", "1.2", "tls version")
 }
 
 func tlsConfig(cmd *cobra.Command) (*gmtls.Config, error) {
 	var (
-		certFile      = cmd.Flag("cert").Value.String()
-		keyFile       = cmd.Flag("key").Value.String()
-		caFile        = cmd.Flag("ca").Value.String()
-		encCertFile   = cmd.Flag("enc_cert").Value.String()
-		encKeyFile    = cmd.Flag("enc_key").Value.String()
-		skipVerify, _ = cmd.Flags().GetBool("skip_verify")
-		tlsVersion    = cmd.Flag("tls_version").Value.String()
+		certFile    = cmd.Flag("cert").Value.String()
+		keyFile     = cmd.Flag("key").Value.String()
+		caFile      = cmd.Flag("ca").Value.String()
+		encCertFile = cmd.Flag("enc_cert").Value.String()
+		encKeyFile  = cmd.Flag("enc_key").Value.String()
+		tlsVersion  = cmd.Flag("tls_version").Value.String()
 	)
-
-	if connect == "" {
-		return nil, errors.New("server address is required")
-	}
 
 	var tlsConfig = &gmtls.Config{}
 
@@ -92,10 +86,6 @@ func tlsConfig(cmd *cobra.Command) (*gmtls.Config, error) {
 			return nil, errors.Wrap(err, "failed to read ca certificate")
 		}
 		certPool.AppendCertsFromPEM(cacert)
-	}
-
-	if skipVerify {
-		tlsConfig.InsecureSkipVerify = true
 	}
 
 	switch tlsVersion {
