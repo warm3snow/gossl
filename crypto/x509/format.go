@@ -14,8 +14,10 @@ import (
 	"crypto/elliptic"
 	"crypto/rsa"
 	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
 	"github.com/tjfoc/gmsm/sm2"
+	"github.com/tjfoc/gmsm/x509"
 	"strings"
 )
 
@@ -110,4 +112,13 @@ var PublicKeyAlgorithmName = map[int]string{
 	2: "DSA",
 	3: "id-ecPublicKey",
 	4: "SM2",
+}
+
+func CertToPem(cert *x509.Certificate) []byte {
+	pemBlock := &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: cert.Raw,
+	}
+
+	return pem.EncodeToMemory(pemBlock)
 }

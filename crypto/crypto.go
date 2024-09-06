@@ -9,11 +9,11 @@
 package crypto
 
 import (
-	"github.com/tjfoc/gmsm/x509"
 	"github.com/warm3snow/gossl/crypto/asym"
 	_const "github.com/warm3snow/gossl/crypto/const"
 	"github.com/warm3snow/gossl/crypto/dgst"
 	"github.com/warm3snow/gossl/crypto/sym"
+	"github.com/warm3snow/gossl/crypto/x509"
 )
 
 type CryptoAlgorithm interface {

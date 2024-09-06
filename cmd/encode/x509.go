@@ -3,7 +3,7 @@ package encode
 import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/tjfoc/gmsm/x509"
+	"github.com/warm3snow/gossl/crypto/x509"
 	"github.com/warm3snow/gossl/utils"
 	"os"
 )

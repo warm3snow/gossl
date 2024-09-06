@@ -6,8 +6,8 @@ package tls
 
 import (
 	"fmt"
-
 	"github.com/spf13/cobra"
+	cmtls "github.com/warm3snow/gossl/crypto/gmtls"
 )
 
 // sServerCmd represents the sServer command
@@ -16,7 +16,9 @@ var sServerCmd = &cobra.Command{
 	Short: "tls server",
 	Long:  `tls server for test and debug`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("sServer called")
+		if err := runServer(cmd); err != nil {
+			panic(err)
+		}
 	},
 }
 
@@ -32,4 +34,29 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// sServerCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	sServerCmd.Flags().IntVar(&accept, "accept", 4433, "server port to accept")
+}
+
+var (
+	accept int
+)
+
+//openssl s_server -accept 4433 -cert rsa.crt -key rsa.key -www
+
+func runServer(cmd *cobra.Command) error {
+	cfg, err := tlsConfig(cmd)
+	if err != nil {
+		return err
+	}
+	ln, err := cmtls.Listen("tcp", fmt.Sprintf(":%d", accept), cfg)
+	defer ln.Close()
+
+	//lis := cmtls.NewListener(ln, cfg)
+	//lis.
+	//
+	//mux := cmtls.NewServeMux()
+	//mux.HandleFunc("/", sayHello)
+	//
+	//err = http.Serve(ln, mux)
 }

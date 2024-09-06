@@ -22,6 +22,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha1"
 	"errors"
+	"fmt"
 	"io"
 	"math/big"
 
@@ -366,6 +367,18 @@ func (ka *ecdheKeyAgreement) processServerKeyExchange(config *Config, clientHell
 	if err != nil {
 		return err
 	}
+
+	// DEBUG NODE: print server key exchange message
+	{
+		fmt.Printf("---\n")
+		fmt.Printf("Server Key Exchange: \n")
+		fmt.Printf("  Server Temp Key: %s, %s, %d bits\n", "ECDHE", curveMap[ka.curveid], len(publicKey)*8)
+		fmt.Printf("  PublicKey: %x\n", publicKey)
+		fmt.Printf("  Digest: %x\n", digest)
+		fmt.Printf("  Signature Type: %s\n", signatureMap[sigType])
+		fmt.Printf("  Signature: %x\n", sig)
+	}
+
 	return verifyHandshakeSignature(sigType, cert.PublicKey, hashFunc, digest, sig)
 }
 
