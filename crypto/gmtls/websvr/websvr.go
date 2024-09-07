@@ -14,12 +14,12 @@ const (
 	RSACaCertPath   = "./certs/RSA_CA.cer"
 	RSAAuthCertPath = "./certs/rsa_auth_cert.cer"
 	RSAAuthKeyPath  = "./certs/rsa_auth_key.pem"
-	SM2CaCertPath   = "./certs/SM2_CA.cer"
+	SM2CaCertPath   = "./certs/SM2_CA.crt"
 	SM2AuthCertPath = "./certs/sm2_auth_cert.cer"
 	SM2AuthKeyPath  = "./certs/sm2_auth_key.pem"
-	sm2SignCertPath = "./certs/sm2_sign_cert.cer"
+	sm2SignCertPath = "./certs/sm2_sign_cert.crt"
 	sm2SignKeyPath  = "./certs/sm2_sign_key.pem"
-	sm2EncCertPath  = "./certs/sm2_enc_cert.cer"
+	sm2EncCertPath  = "./certs/sm2_enc_cert.crt"
 	sm2EncKeyPath   = "./certs/sm2_enc_key.pem"
 )
 

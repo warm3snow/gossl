@@ -47,7 +47,7 @@ func init() {
 	tlsCmd.PersistentFlags().String("enc_cert", "", "encrypt certificate file")
 	tlsCmd.PersistentFlags().String("enc_key", "", "encrypt private key file")
 
-	tlsCmd.PersistentFlags().String("tls_version", "1.2", "tls version")
+	tlsCmd.PersistentFlags().String("tls_version", "1.2", "tls version[tls1.1, tls1.2, gmtls1.1]")
 }
 
 func tlsConfig(cmd *cobra.Command) (*gmtls.Config, error) {
@@ -59,6 +59,13 @@ func tlsConfig(cmd *cobra.Command) (*gmtls.Config, error) {
 		encKeyFile  = cmd.Flag("enc_key").Value.String()
 		tlsVersion  = cmd.Flag("tls_version").Value.String()
 	)
+
+	fmt.Printf("certFile: %s\n", certFile)
+	fmt.Printf("keyFile: %s\n", keyFile)
+	fmt.Printf("caFile: %s\n", caFile)
+	fmt.Printf("encCertFile: %s\n", encCertFile)
+	fmt.Printf("encKeyFile: %s\n", encKeyFile)
+	fmt.Printf("tlsVersion: %s\n", tlsVersion)
 
 	var tlsConfig = &gmtls.Config{}
 
@@ -94,7 +101,9 @@ func tlsConfig(cmd *cobra.Command) (*gmtls.Config, error) {
 	case "tls1.2":
 		tlsConfig.MinVersion = gmtls.VersionTLS12
 	case "gmtls1.1":
+		tlsConfig.GMSupport = &gmtls.GMSupport{}
 		tlsConfig.MinVersion = gmtls.VersionGMSSL
+		tlsConfig.MaxVersion = gmtls.VersionGMSSL
 	}
 	return tlsConfig, nil
 }

@@ -8,6 +8,7 @@ import (
 	"crypto/rsa"
 	"errors"
 	"fmt"
+	"github.com/tjfoc/gmsm/sm2"
 	"io"
 	"sync/atomic"
 	"time"
@@ -394,7 +395,7 @@ Curves:
 
 	if priv, ok := hs.cert.PrivateKey.(crypto.Signer); ok {
 		switch priv.Public().(type) {
-		case *ecdsa.PublicKey:
+		case *ecdsa.PublicKey, *sm2.PublicKey:
 			hs.ecdsaOk = true
 		case *rsa.PublicKey:
 			hs.rsaSignOk = true
@@ -407,6 +408,7 @@ Curves:
 		switch priv.Public().(type) {
 		case *rsa.PublicKey:
 			hs.rsaDecryptOk = true
+		case *sm2.PublicKey, *ecdsa.PublicKey:
 		default:
 			_ = c.sendAlert(alertInternalError)
 			return false, fmt.Errorf("tls: unsupported decryption key type (%T)", priv.Public())

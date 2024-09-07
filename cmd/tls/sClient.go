@@ -37,7 +37,7 @@ func init() {
 	// sClientCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	sClientCmd.Flags().StringVarP(&connect, "connect", "c", "", "server address to connect")
-	sClientCmd.PersistentFlags().BoolVarP(&skipVerify, "skip_verify", "", true, "skip verify")
+	sClientCmd.PersistentFlags().BoolVarP(&skipVerify, "skip_verify", "", false, "skip verify")
 }
 
 var (
