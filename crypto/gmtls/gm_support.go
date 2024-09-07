@@ -5,7 +5,7 @@
 package gmtls
 
 import (
-	"crypto"
+	gocyrpto "crypto"
 	"crypto/cipher"
 	"crypto/hmac"
 	"encoding/pem"
@@ -60,23 +60,6 @@ NB8Cs3U2so5gFQq6YdtX7d4EtgIgcVu9SQzlDmmmk61AaEES9UJgENmxrdhkon2T
 vHTeE7Y=
 -----END CERTIFICATE-----`,
 	},
-	{
-		name: "FABRIC",
-		pem: `-----BEGIN CERTIFICATE-----
-MIICMDCCAdagAwIBAgIRANnwbA2SIB/k0VNSkTi7TYUwCgYIKoEcz1UBg3UwaTEL
-MAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG
-cmFuY2lzY28xFDASBgNVBAoTC2V4YW1wbGUuY29tMRcwFQYDVQQDEw5jYS5leGFt
-cGxlLmNvbTAeFw0xODEyMjcwNzE3MzBaFw0yODEyMjQwNzE3MzBaMGkxCzAJBgNV
-BAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4gRnJhbmNp
-c2NvMRQwEgYDVQQKEwtleGFtcGxlLmNvbTEXMBUGA1UEAxMOY2EuZXhhbXBsZS5j
-b20wWTATBgcqhkjOPQIBBggqgRzPVQGCLQNCAARAp0oXL9xvWjkipnru0gsuL95g
-jpjscT5fQw0bHXPBSzYSq0+hoJf7C3t6tzjnI6pN0156KZg8Y1Bg7fx9xxOHo18w
-XTAOBgNVHQ8BAf8EBAMCAaYwDwYDVR0lBAgwBgYEVR0lADAPBgNVHRMBAf8EBTAD
-AQH/MCkGA1UdDgQiBCAt1zWEo9mUfmTAZlZthCkppNjgQlpQ9A77ylguCH4tRDAK
-BggqgRzPVQGDdQNIADBFAiBFx066bqQswz5eFA6IWZjj7GmdAyypq48IUaI8cs+b
-AwIhAPKX+rTHK3IHmZ3MHU2ajoJcGwq0h7aWpcpljF6cld4r
------END CERTIFICATE-----`,
-	},
 }
 
 var certCAs []*x509.Certificate
@@ -110,7 +93,11 @@ const (
 	GMTLS_RSA_WITH_SM1_SM3       uint16 = 0xe009
 	GMTLS_RSA_WITH_SM1_SHA1      uint16 = 0xe00a
 	GMTLS_ECDHE_SM2_WITH_SM4_SM3 uint16 = 0xe011
+	GMTLS_ECDHE_SM4_CBC_SM3      uint16 = 0xe011
+	GMTLS_ECDHE_SM4_GCM_SM3      uint16 = 0xe051
 	GMTLS_SM2_WITH_SM4_SM3       uint16 = 0xe013
+	GMTLS_ECC_SM4_CBC_SM3        uint16 = 0xe013
+	GMTLS_ECC_SM4_GCM_SM3        uint16 = 0xe053
 	GMTLS_IBSDH_WITH_SM4_SM3     uint16 = 0xe015
 	GMTLS_IBC_WITH_SM4_SM3       uint16 = 0xe017
 	GMTLS_RSA_WITH_SM4_SM3       uint16 = 0xe019
@@ -118,16 +105,52 @@ const (
 )
 
 var gmCipherSuites = []*cipherSuite{
-	{GMTLS_SM2_WITH_SM4_SM3, 16, 32, 16, eccGMKA, suiteECDSA, cipherSM4, macSM3, nil},
-	{GMTLS_ECDHE_SM2_WITH_SM4_SM3, 16, 32, 16, ecdheGMKA, suiteECDHE | suiteECDSA, cipherSM4, macSM3, nil},
+	{GMTLS_ECC_SM4_CBC_SM3, 16, 32, 16, eccGMKA, suiteECSign, cipherSM4, macSM3, nil},
+	{GMTLS_ECC_SM4_GCM_SM3, 16, 0, 4, eccGMKA, suiteECSign, nil, nil, aeadSM4GCM},
+
+	{GMTLS_ECDHE_SM4_CBC_SM3, 16, 32, 16, ecdheGMKA, suiteECDHE | suiteECSign, cipherSM4, macSM3, nil},
+	{GMTLS_ECDHE_SM4_GCM_SM3, 16, 0, 4, ecdheGMKA, suiteECDHE | suiteECSign, nil, nil, aeadSM4GCM},
+}
+
+// aeadSM4GCM SM4 GCM向前加解密函数
+// key: 对称密钥
+// nonce: 隐式随机数 (implicit nonce 4 Byte)
+func aeadSM4GCM(key []byte, nonce []byte) cipher.AEAD {
+	if len(nonce) != noncePrefixLength {
+		panic("tls: internal error: wrong implicit nonce length")
+	}
+	block, err := sm4.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+	aead, err := cipher.NewGCMWithNonceSize(block, 12)
+	if err != nil {
+		panic(err)
+	}
+	// AEAD 使用的随机数应由显式和隐式两部分构成，
+	// 显式部分即 nonce explicit，客户端和服务端使用隐式部分
+	// 分别来自 client_write_iv 和 server_write_iv。
+	// AEAD使用的随机数和计数器的构造参见 RFC 5116
+	ret := &prefixNonceAEAD{aead: aead}
+	copy(ret.nonce[:], nonce)
+	return ret
 }
 
 func getCipherSuites(c *Config) []uint16 {
 	s := c.CipherSuites
 	if s == nil {
-		s = []uint16{GMTLS_SM2_WITH_SM4_SM3, GMTLS_ECDHE_SM2_WITH_SM4_SM3}
+		s = []uint16{
+			GMTLS_ECC_SM4_CBC_SM3,
+			GMTLS_ECC_SM4_GCM_SM3,
+			GMTLS_ECDHE_SM4_CBC_SM3,
+			GMTLS_ECDHE_SM4_GCM_SM3,
+		}
 	}
 	return s
+}
+
+func getGMCipherSuites() []*cipherSuite {
+	return gmCipherSuites
 }
 
 func cipherSM4(key, iv []byte, isRead bool) interface{} {
@@ -140,7 +163,7 @@ func cipherSM4(key, iv []byte, isRead bool) interface{} {
 
 // macSHA1 returns a macFunction for the given protocol version.
 func macSM3(version uint16, key []byte) macFunction {
-	return tls10MAC{hmac.New(sm3.New, key)}
+	return tls10MAC{h: hmac.New(sm3.New, key)}
 }
 
 //used for adapt the demand of finishHash write
@@ -167,7 +190,6 @@ func (nilMD5Hash) BlockSize() int {
 
 func newFinishedHashGM(cipherSuite *cipherSuite) finishedHash {
 	return finishedHash{sm3.New(), sm3.New(), new(nilMD5Hash), new(nilMD5Hash), []byte{}, VersionGMSSL, prf12(sm3.New)}
-
 }
 
 func ecdheGMKA(version uint16) keyAgreement {
@@ -224,15 +246,15 @@ func (support *GMSupport) cipherSuites() []*cipherSuite {
 }
 
 // EnableMixMode 启用 GMSSL/TLS 自动切换的工作模式
-func (support *GMSupport) EnableMixMode() {
-	support.WorkMode = ModeAutoSwitch
-}
+//func (support *GMSupport) EnableMixMode() {
+//	support.WorkMode = ModeAutoSwitch
+//}
 
 // IsAutoSwitchMode 是否处于混合工作模式
 // return true - GMSSL/TLS 均支持, false - 不处于混合模式
-func (support *GMSupport) IsAutoSwitchMode() bool {
-	return support.WorkMode == ModeAutoSwitch
-}
+//func (support *GMSupport) IsAutoSwitchMode() bool {
+//	return support.WorkMode == ModeAutoSwitch
+//}
 
 // LoadGMX509KeyPairs reads and parses two public/private key pairs from pairs
 // of files. The files must contain PEM encoded data. The certificate file
@@ -260,7 +282,7 @@ func LoadGMX509KeyPairs(certFile, keyFile, encCertFile, encKeyFile string) (Cert
 	return GMX509KeyPairs(certPEMBlock, keyPEMBlock, encCertPEMBlock, encKeyPEMBlock)
 }
 
-// add by syl add sigle key pair sitiation
+// LoadGMX509KeyPair add by syl add sigle key pair sitiation
 func LoadGMX509KeyPair(certFile, keyFile string) (Certificate, error) {
 	certPEMBlock, err := ioutil.ReadFile(certFile)
 	if err != nil {
@@ -347,7 +369,7 @@ func getKey(keyPEMBlock []byte) (*pem.Block, error) {
 	return keyDERBlock, nil
 }
 
-func matchKeyCert(keyDERBlock *pem.Block, certDERBlock []byte) (crypto.PrivateKey, error) {
+func matchKeyCert(keyDERBlock *pem.Block, certDERBlock []byte) (gocyrpto.PrivateKey, error) {
 	// We don't need to parse the public key for TLS, but we so do anyway
 	// to check that it looks sane and matches the private key.
 	x509Cert, err := x509.ParseCertificate(certDERBlock)
@@ -375,7 +397,7 @@ func matchKeyCert(keyDERBlock *pem.Block, certDERBlock []byte) (crypto.PrivateKe
 	return privateKey, nil
 }
 
-// X509KeyPair parses a public/private key pair from a pair of
+// GMX509KeyPairs X509KeyPair parses a public/private key pair from a pair of
 // PEM encoded data. On successful return, Certificate.Leaf will be nil because
 // the parsed form of the certificate is not retained.
 func GMX509KeyPairs(certPEMBlock, keyPEMBlock, encCertPEMBlock, encKeyPEMBlock []byte) (Certificate, error) {

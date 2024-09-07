@@ -1,17 +1,6 @@
-/*
-Copyright Suzhou Tongji Fintech Research Institute 2017 All Rights Reserved.
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-	http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// Copyright 2009 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
 package gmtls
 
@@ -49,14 +38,17 @@ const (
 	alertInappropriateFallback  alert = 86
 	alertUserCanceled           alert = 90
 	alertNoRenegotiation        alert = 100
+	alertMissingExtension       alert = 109
+	alertUnsupportedExtension   alert = 110
+	alertUnrecognizedName       alert = 112
 	alertNoApplicationProtocol  alert = 120
 	//GMT0024
-	alertUnspporttedSite2Site   alert = 200
-	alertNoArea                 alert = 201
-	alertUnspportedAreaType     alert = 202
-	alertBadIBCParam            alert = 203
-	alertUnspportedIBCParam     alert = 204
-	alertIdentityNeed           alert = 205
+	alertUnsupporttedSite2Site alert = 200
+	alertNoArea                alert = 201
+	alertUnsupportedAreaType   alert = 202
+	alertBadIBCParam           alert = 203
+	alertUnsupportedIBCParam   alert = 204
+	alertIdentityNeed          alert = 205
 )
 
 var alertText = map[alert]string{
@@ -83,14 +75,17 @@ var alertText = map[alert]string{
 	alertInappropriateFallback:  "inappropriate fallback",
 	alertUserCanceled:           "user canceled",
 	alertNoRenegotiation:        "no renegotiation",
+	alertMissingExtension:       "missing extension",
+	alertUnsupportedExtension:   "unsupported extension",
+	alertUnrecognizedName:       "unrecognized name",
 	alertNoApplicationProtocol:  "no application protocol",
 	//GMT0024
-	alertUnspporttedSite2Site:   "不支持site2site",
-	alertNoArea              :   "没有保护域",
-	alertUnspportedAreaType  :   "不支持的保护域类型",
-	alertBadIBCParam         :   "接收到一个无效的ibc公共参数",
-	alertUnspportedIBCParam  :   "不支持ibc参数中定义的信息",
-	alertIdentityNeed        :   "缺少对方的ibc标识",
+	alertUnsupporttedSite2Site: "unsupported site2site",
+	alertNoArea:                "no area",
+	alertUnsupportedAreaType:   "unsupported area type",
+	alertBadIBCParam:           "bad ibc param",
+	alertUnsupportedIBCParam:   "unsupport ibc param",
+	alertIdentityNeed:          "need ibc identity",
 }
 
 func (e alert) String() string {

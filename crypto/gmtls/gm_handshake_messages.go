@@ -5,24 +5,11 @@
 
 package gmtls
 
-import "bytes"
-
 type certificateRequestMsgGM struct {
 	raw []byte
 
-	certificateTypes             []byte
-	certificateAuthorities       [][]byte
-}
-
-func (m *certificateRequestMsgGM) equal(i interface{}) bool {
-	m1, ok := i.(*certificateRequestMsgGM)
-	if !ok {
-		return false
-	}
-
-	return bytes.Equal(m.raw, m1.raw) &&
-		bytes.Equal(m.certificateTypes, m1.certificateTypes) &&
-		eqByteSlices(m.certificateAuthorities, m1.certificateAuthorities)
+	certificateTypes       []byte
+	certificateAuthorities [][]byte
 }
 
 func (m *certificateRequestMsgGM) marshal() (x []byte) {
@@ -119,4 +106,3 @@ func (m *certificateRequestMsgGM) unmarshal(data []byte) bool {
 
 	return len(data) == 0
 }
-

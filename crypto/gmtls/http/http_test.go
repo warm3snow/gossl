@@ -1,21 +1,16 @@
-/*
-Copyright (C) BABEC. All rights reserved.
-Copyright (C) THL A29 Limited, a Tencent company. All rights reserved.
-
-SPDX-License-Identifier: Apache-2.0
-*/
-
 package http
 
 import (
-	"github.com/stretchr/testify/assert"
-	cmtls "github.com/warm3snow/gossl/crypto/gmtls"
+	"github.com/warm3snow/gossl/crypto/gmtls/config"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	tls "github.com/warm3snow/gossl/crypto/gmtls"
 )
 
 var (
@@ -46,20 +41,20 @@ func TestHttpsServer(t *testing.T) {
 	go func() {
 		err := ListenAndServeTLS(
 			":13001",
-			"../testdata/server.crt",
-			"../testdata/server.key",
-			"../testdata/ca.crt",
+			"../testdata/certs/single/server.crt",
+			"../testdata/certs/single/server.key",
+			"../testdata/certs/single/ca.crt",
 			http.HandlerFunc(sayHello),
 		)
 		assert.NoError(t, err)
 	}()
 
-	time.Sleep(time.Millisecond * 100)
-	go func() {
-		cfg, err := GetConfig(
-			"../testdata/client.crt",
-			"../testdata/client.key",
-			"../testdata/ca.crt",
+	{
+		finish <- true
+		cfg, err := config.GetConfig(
+			"../testdata/certs/single/client.crt",
+			"../testdata/certs/single/client.key",
+			"../testdata/certs/single/ca.crt",
 			false,
 		)
 		assert.NoError(t, err)
@@ -72,18 +67,17 @@ func TestHttpsServer(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, msg, buf)
 		log.Println("receive from server: " + string(buf))
-		finish <- true
-	}()
+	}
 
 	<-finish
 }
 
 func testHttpsServerRun(t *testing.T, addr string) {
-	cfg, err := GetConfig(ssCert, ssKey, caCert, true)
+	cfg, err := config.GetConfig(ssCert, ssKey, caCert, true)
 	assert.NoError(t, err)
-	cfg.ClientAuth = cmtls.RequireAndVerifyClientCert
+	cfg.ClientAuth = tls.RequireAndVerifyClientCert
 
-	ln, err := cmtls.Listen("tcp", addr, cfg)
+	ln, err := tls.Listen("tcp", addr, cfg)
 	assert.NoError(t, err)
 	defer ln.Close()
 
@@ -95,7 +89,7 @@ func testHttpsServerRun(t *testing.T, addr string) {
 }
 
 func testHttpsClientRun(t *testing.T, url string, finish chan bool) {
-	cfg, err := GetConfig(csCert, csKey, caCert, false)
+	cfg, err := config.GetConfig(csCert, csKey, caCert, false)
 	assert.NoError(t, err)
 	cfg.ServerName = "chainmaker.org"
 
@@ -112,11 +106,11 @@ func testHttpsClientRun(t *testing.T, url string, finish chan bool) {
 }
 
 func testHttpsServerRun_GM1(t *testing.T, addr string) {
-	cfg, err := GetGMTLSConfig(ssCert, ssKey, seCert, seKey, caCert, true)
+	cfg, err := config.GetGMTLSConfig(ssCert, ssKey, seCert, seKey, caCert, true)
 	assert.NoError(t, err)
-	cfg.ClientAuth = cmtls.RequireAndVerifyClientCert
+	cfg.ClientAuth = tls.RequireAndVerifyClientCert
 
-	ln, err := cmtls.Listen("tcp", addr, cfg)
+	ln, err := tls.Listen("tcp", addr, cfg)
 	assert.NoError(t, err)
 
 	mux := http.NewServeMux()
@@ -127,7 +121,7 @@ func testHttpsServerRun_GM1(t *testing.T, addr string) {
 }
 
 func testHttpsClientRun_GM1(t *testing.T, url string, finish chan bool) {
-	cfg, err := GetGMTLSConfig(csCert, csKey, ceCert, ceKey, caCert, false)
+	cfg, err := config.GetGMTLSConfig(csCert, csKey, ceCert, ceKey, caCert, false)
 	assert.NoError(t, err)
 	cfg.ServerName = "chainmaker.org"
 	cfg.InsecureSkipVerify = false

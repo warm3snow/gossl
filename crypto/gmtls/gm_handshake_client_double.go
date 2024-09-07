@@ -6,12 +6,13 @@ package gmtls
 
 import (
 	"bytes"
-	"crypto"
+	gocrypto "crypto"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/subtle"
 	"errors"
 	"fmt"
+	"github.com/warm3snow/gossl/crypto"
 	"io"
 	"strconv"
 	"sync/atomic"
@@ -35,17 +36,36 @@ func makeClientHelloGM(config *Config) (*clientHelloMsg, error) {
 		return nil, errors.New("tls: either ServerName or InsecureSkipVerify must be specified in the tls.Config")
 	}
 
+	nextProtosLength := 0
+	for _, proto := range config.NextProtos {
+		if l := len(proto); l == 0 || l > 255 {
+			return nil, errors.New("tls: invalid NextProtos value")
+		} else {
+			nextProtosLength += 1 + l
+		}
+	}
+	if nextProtosLength > 0xffff {
+		return nil, errors.New("tls: NextProtos values too large")
+	}
+
 	hello := &clientHelloMsg{
-		vers:               config.GMSupport.GetVersion(),
+		vers:               VersionGMSSL,
 		compressionMethods: []uint8{compressionNone},
 		random:             make([]byte, 32),
+		sessionId:          make([]byte, 32),
+		ocspStapling:       true,
+		scts:               true,
+		serverName:         hostnameInSNI(config.ServerName),
+		supportedCurves:    []CurveID{SM2P256V1},
+		supportedPoints:    []uint8{pointFormatUncompressed},
+		alpnProtocols:      config.NextProtos,
 	}
 	possibleCipherSuites := getCipherSuites(config)
 	hello.cipherSuites = make([]uint16, 0, len(possibleCipherSuites))
 
 NextCipherSuite:
 	for _, suiteId := range possibleCipherSuites {
-		for _, suite := range config.GMSupport.cipherSuites() {
+		for _, suite := range getGMCipherSuites() {
 			if suite.id != suiteId {
 				continue
 			}
@@ -59,6 +79,13 @@ NextCipherSuite:
 		return nil, errors.New("tls: short read from Rand: " + err.Error())
 	}
 
+	// A random session ID is used to detect when the server accepted a ticket
+	// and is resuming a session (see RFC 5077). In TLS 1.3, it's always set as
+	// a compatibility measure (see RFC 8446, Section 4.1.2).
+	//if _, err := io.ReadFull(config.rand(), hello.sessionId); err != nil {
+	//	return nil, errors.New("tls: short read from Rand: " + err.Error())
+	//}
+
 	return hello, nil
 }
 
@@ -68,27 +95,32 @@ func (hs *clientHandshakeStateGM) handshake() error {
 	c := hs.c
 
 	// send ClientHello
-	if _, err := c.writeRecord(recordTypeHandshake, hs.hello.marshal()); err != nil {
-		return err
-	}
+	// if _, err := c.writeRecord(recordTypeHandshake, hs.hello.marshal()); err != nil {
+	// 	return err
+	// }
 
-	msg, err := c.readHandshake()
-	if err != nil {
-		return err
-	}
+	// msg, err := c.readHandshake()
+	// if err != nil {
+	// 	return err
+	// }
 
-	var ok bool
-	if hs.serverHello, ok = msg.(*serverHelloMsg); !ok {
-		c.sendAlert(alertUnexpectedMessage)
-		return unexpectedMessageError(hs.serverHello, msg)
-	}
+	// var ok bool
+	// if hs.serverHello, ok = msg.(*serverHelloMsg); !ok {
+	// 	c.sendAlert(alertUnexpectedMessage)
+	// 	return unexpectedMessageError(hs.serverHello, msg)
+	// }
 
 	if hs.serverHello.vers != VersionGMSSL {
 		hs.c.sendAlert(alertProtocolVersion)
 		return fmt.Errorf("tls: server selected unsupported protocol version %x, while expecting %x", hs.serverHello.vers, VersionGMSSL)
 	}
 
-	if err = hs.pickCipherSuite(); err != nil {
+	// c.vers = hs.serverHello.vers
+	// c.haveVers = true
+	// c.in.version = hs.serverHello.vers
+	// c.out.version = hs.serverHello.vers
+
+	if err := hs.pickCipherSuite(); err != nil {
 		return err
 	}
 
@@ -189,10 +221,14 @@ func (hs *clientHandshakeStateGM) doFullHandshake() error {
 
 	hs.finishedHash.Write(certMsg.marshal())
 
+	// check position of signcert and enccert
+	signpos, encpos := -1, -1
+	signflag, encflag := false, false
 	if c.handshakes == 0 {
 		// If this is the first handshake on a connection, process and
 		// (optionally) verify the server's certificates.
 		certs := make([]*x509.Certificate, len(certMsg.certificates))
+
 		for i, asn1Data := range certMsg.certificates {
 			cert, err := x509.ParseCertificate(asn1Data)
 			if err != nil {
@@ -200,28 +236,32 @@ func (hs *clientHandshakeStateGM) doFullHandshake() error {
 				return errors.New("tls: failed to parse certificate from server: " + err.Error())
 			}
 
-			pubKey, _ := cert.PublicKey.(*ecdsa.PublicKey)
-			if pubKey.Curve != sm2.P256Sm2() {
+			_, ok := cert.PublicKey.(*sm2.PublicKey)
+			if !ok {
 				c.sendAlert(alertUnsupportedCertificate)
 				return fmt.Errorf("tls: pubkey type of cert is error, expect sm2.publicKey")
 			}
 
-			//cert[0] is for signature while cert[1] is for encipher, refer to  GMT0024
-			//check key usage
-			switch i {
-			case 0:
-				if cert.KeyUsage == 0 || (cert.KeyUsage&(x509.KeyUsageDigitalSignature|cert.KeyUsage&x509.KeyUsageContentCommitment)) == 0 {
-					c.sendAlert(alertInsufficientSecurity)
-					return fmt.Errorf("tls: the keyusage of cert[0] does not exist or is not for KeyUsageDigitalSignature/KeyUsageContentCommitment, value:%d", cert.KeyUsage)
-				}
-			case 1:
-				if cert.KeyUsage == 0 || (cert.KeyUsage&(x509.KeyUsageDataEncipherment|x509.KeyUsageKeyEncipherment|x509.KeyUsageKeyAgreement)) == 0 {
-					c.sendAlert(alertInsufficientSecurity)
-					return fmt.Errorf("tls: the keyusage of cert[1] does not exist or is not for KeyUsageDataEncipherment/KeyUsageKeyEncipherment/KeyUsageKeyAgreement, value:%d", cert.KeyUsage)
-				}
+			//check key usage and set the first checked cert
+			if !signflag && ((cert.KeyUsage & (x509.KeyUsageDigitalSignature | cert.KeyUsage&x509.KeyUsageContentCommitment)) != 0) {
+				signpos = i
+				signflag = true
+			} else if !encflag && ((cert.KeyUsage & (x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment | x509.KeyUsageKeyAgreement)) != 0) {
+				encpos = i
+				encflag = true
 			}
 
 			certs[i] = cert
+		}
+
+		if signpos < 0 {
+			c.sendAlert(alertInsufficientSecurity)
+			return errors.New("tls: the keyusage of DigitalSignature does not exist ")
+		}
+
+		if encpos < 0 {
+			c.sendAlert(alertInsufficientSecurity)
+			return errors.New("tls: the keyusage of Encipherment does not exist ")
 		}
 
 		if !c.config.InsecureSkipVerify {
@@ -239,12 +279,12 @@ func (hs *clientHandshakeStateGM) doFullHandshake() error {
 				opts.Roots.AddCert(rootca)
 			}
 			for i, cert := range certs {
-				c.verifiedChains, err = certs[i].Verify(opts)
-				if err != nil {
-					c.sendAlert(alertBadCertificate)
-					return err
-				}
-				if i == 0 || i == 1 {
+				if i == signpos || i == encpos {
+					c.verifiedChains, err = certs[i].Verify(opts)
+					if err != nil {
+						_ = c.sendAlert(alertBadCertificate)
+						return err
+					}
 					continue
 				}
 				opts.Intermediates.AddCert(cert)
@@ -259,7 +299,7 @@ func (hs *clientHandshakeStateGM) doFullHandshake() error {
 			}
 		}
 
-		switch certs[0].PublicKey.(type) {
+		switch certs[signpos].PublicKey.(type) {
 		case *sm2.PublicKey, *ecdsa.PublicKey, *rsa.PublicKey:
 			break
 		default:
@@ -288,13 +328,14 @@ func (hs *clientHandshakeStateGM) doFullHandshake() error {
 
 	keyAgreement := hs.suite.ka(c.vers)
 	if ka, ok := keyAgreement.(*eccKeyAgreementGM); ok {
-		ka.encipherCert = c.peerCertificates[1]
+		encCert := c.peerCertificates[encpos]
+		ka.encipherCert = encCert
 	}
 
 	skx, ok := msg.(*serverKeyExchangeMsg)
 	if ok {
 		hs.finishedHash.Write(skx.marshal())
-		err = keyAgreement.processServerKeyExchange(c.config, hs.hello, hs.serverHello, c.peerCertificates[0], skx)
+		err = keyAgreement.processServerKeyExchange(c.config, hs.hello, hs.serverHello, c.peerCertificates[signpos], c.peerCertificates[encpos], skx, true)
 		if err != nil {
 			c.sendAlert(alertUnexpectedMessage)
 			return err
@@ -343,7 +384,7 @@ func (hs *clientHandshakeStateGM) doFullHandshake() error {
 		}
 	}
 
-	preMasterSecret, ckx, err := keyAgreement.generateClientKeyExchange(c.config, hs.hello, c.peerCertificates[1])
+	preMasterSecret, ckx, err := keyAgreement.generateClientKeyExchange(c.config, hs.hello, c.peerCertificates[encpos])
 	if err != nil {
 		c.sendAlert(alertInternalError)
 		return err
@@ -358,7 +399,7 @@ func (hs *clientHandshakeStateGM) doFullHandshake() error {
 	if chainToSend != nil && len(chainToSend.Certificate) > 0 {
 		certVerify := &certificateVerifyMsg{}
 
-		key, ok := chainToSend.PrivateKey.(crypto.Signer)
+		key, ok := chainToSend.PrivateKey.(gocrypto.Signer)
 		if !ok {
 			c.sendAlert(alertInternalError)
 			return fmt.Errorf("tls: client certificate private key of type %T does not implement crypto.Signer", chainToSend.PrivateKey)
@@ -366,7 +407,7 @@ func (hs *clientHandshakeStateGM) doFullHandshake() error {
 
 		digest := hs.finishedHash.client.Sum(nil)
 
-		certVerify.signature, err = key.Sign(c.config.rand(), digest, nil)
+		certVerify.signature, err = key.Sign(c.config.rand(), digest, gocrypto.SignerOpts(gocrypto.Hash(crypto.SM3)))
 		if err != nil {
 			c.sendAlert(alertInternalError)
 			return err
@@ -379,7 +420,7 @@ func (hs *clientHandshakeStateGM) doFullHandshake() error {
 	}
 
 	hs.masterSecret = masterFromPreMasterSecret(c.vers, hs.suite, preMasterSecret, hs.hello.random, hs.serverHello.random)
-	if err := c.config.writeKeyLog(hs.hello.random, hs.masterSecret); err != nil {
+	if err := c.config.writeKeyLog(keyLogLabelTLS12, hs.hello.random, hs.masterSecret); err != nil {
 		c.sendAlert(alertInternalError)
 		return errors.New("tls: failed to write to key log: " + err.Error())
 	}
@@ -444,24 +485,12 @@ func (hs *clientHandshakeStateGM) processServerHello() (bool, error) {
 		}
 	}
 
-	clientDidNPN := hs.hello.nextProtoNeg
 	clientDidALPN := len(hs.hello.alpnProtocols) > 0
-	serverHasNPN := hs.serverHello.nextProtoNeg
 	serverHasALPN := len(hs.serverHello.alpnProtocol) > 0
-
-	if !clientDidNPN && serverHasNPN {
-		c.sendAlert(alertHandshakeFailure)
-		return false, errors.New("tls: server advertised unrequested NPN extension")
-	}
 
 	if !clientDidALPN && serverHasALPN {
 		c.sendAlert(alertHandshakeFailure)
 		return false, errors.New("tls: server advertised unrequested ALPN extension")
-	}
-
-	if serverHasNPN && serverHasALPN {
-		c.sendAlert(alertHandshakeFailure)
-		return false, errors.New("tls: server advertised both NPN and ALPN extensions")
 	}
 
 	if serverHasALPN {
@@ -494,9 +523,8 @@ func (hs *clientHandshakeStateGM) processServerHello() (bool, error) {
 func (hs *clientHandshakeStateGM) readFinished(out []byte) error {
 	c := hs.c
 
-	c.readRecord(recordTypeChangeCipherSpec)
-	if c.in.err != nil {
-		return c.in.err
+	if err := c.readChangeCipherSpec(); err != nil {
+		return err
 	}
 
 	msg, err := c.readHandshake()
@@ -555,18 +583,6 @@ func (hs *clientHandshakeStateGM) sendFinished(out []byte) error {
 	if _, err := c.writeRecord(recordTypeChangeCipherSpec, []byte{1}); err != nil {
 		return err
 	}
-	if hs.serverHello.nextProtoNeg {
-		nextProto := new(nextProtoMsg)
-		proto, fallback := mutualProtocol(c.config.NextProtos, hs.serverHello.nextProtos)
-		nextProto.proto = proto
-		c.clientProtocol = proto
-		c.clientProtocolFallback = fallback
-
-		hs.finishedHash.Write(nextProto.marshal())
-		if _, err := c.writeRecord(recordTypeHandshake, nextProto.marshal()); err != nil {
-			return err
-		}
-	}
 
 	finished := new(finishedMsg)
 	finished.verifyData = hs.finishedHash.clientSum(hs.masterSecret)
@@ -593,6 +609,7 @@ func (hs *clientHandshakeStateGM) sendFinished(out []byte) error {
 
 func (hs *clientHandshakeStateGM) getCertificate(certReq *certificateRequestMsgGM) (*Certificate, error) {
 	c := hs.c
+	chainToSend := new(Certificate)
 
 	if c.config.GetClientCertificate != nil {
 		var signatureSchemes []SignatureScheme
@@ -639,6 +656,10 @@ findCert:
 				if ok && pubKey.Curve == sm2.P256Sm2() {
 					isGMCert = true
 				}
+
+				if _, ok = x509Cert.PublicKey.(*sm2.PublicKey); ok {
+					isGMCert = true
+				}
 			}
 
 			if !isGMCert {
@@ -648,17 +669,28 @@ findCert:
 			if len(certReq.certificateAuthorities) == 0 {
 				// they gave us an empty list, so just take the
 				// first cert from c.config.Certificates
-				return &chain, nil
+				// return &chain, nil
+				if chainToSend.Certificate == nil {
+					*chainToSend = chain
+				} else {
+					chainToSend.Certificate = append(chainToSend.Certificate, chain.Certificate...)
+				}
 			}
 
 			for _, ca := range certReq.certificateAuthorities {
 				if bytes.Equal(x509Cert.RawIssuer, ca) {
-					return &chain, nil
+					// return &chain, nil
+					if chainToSend.Certificate == nil {
+						*chainToSend = chain
+					} else {
+						chainToSend.Certificate = append(chainToSend.Certificate, chain.Certificate...)
+					}
 				}
 			}
 		}
 	}
 
 	// No acceptable certificate found. Don't send a certificate.
-	return new(Certificate), nil
+	// return new(Certificate), nil
+	return chainToSend, nil
 }
