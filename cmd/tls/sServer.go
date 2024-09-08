@@ -37,7 +37,7 @@ func init() {
 	// is called directly, e.g.:
 	// sServerCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	sServerCmd.Flags().IntVar(&accept, "accept", 4433, "server port to accept")
+	sServerCmd.Flags().IntVar(&accept, "accept", 443, "server port to listen")
 }
 
 var (

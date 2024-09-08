@@ -47,7 +47,7 @@ func init() {
 	tlsCmd.PersistentFlags().String("enc_cert", "", "encrypt certificate file")
 	tlsCmd.PersistentFlags().String("enc_key", "", "encrypt private key file")
 
-	tlsCmd.PersistentFlags().String("tls_version", "1.2", "tls version[tls1.1, tls1.2, gmtls1.1]")
+	tlsCmd.PersistentFlags().String("tls_version", "", "tls version[tls1.1, tls1.2, tls1.3, gmtls1.1]")
 }
 
 func tlsConfig(cmd *cobra.Command) (*gmtls.Config, error) {
@@ -58,23 +58,27 @@ func tlsConfig(cmd *cobra.Command) (*gmtls.Config, error) {
 		encCertFile = cmd.Flag("enc_cert").Value.String()
 		encKeyFile  = cmd.Flag("enc_key").Value.String()
 		tlsVersion  = cmd.Flag("tls_version").Value.String()
+
+		verbose, _ = cmd.Flags().GetBool("verbose")
 	)
 
-	fmt.Printf("certFile: %s\n", certFile)
-	fmt.Printf("keyFile: %s\n", keyFile)
-	fmt.Printf("caFile: %s\n", caFile)
-	fmt.Printf("encCertFile: %s\n", encCertFile)
-	fmt.Printf("encKeyFile: %s\n", encKeyFile)
-	fmt.Printf("tlsVersion: %s\n", tlsVersion)
+	if verbose {
+		fmt.Printf("certFile: %s\n", certFile)
+		fmt.Printf("keyFile: %s\n", keyFile)
+		fmt.Printf("caFile: %s\n", caFile)
+		fmt.Printf("encCertFile: %s\n", encCertFile)
+		fmt.Printf("encKeyFile: %s\n", encKeyFile)
+		fmt.Printf("tlsVersion: %s\n", tlsVersion)
+	}
 
-	var tlsConfig = &gmtls.Config{}
+	var cfg = &gmtls.Config{}
 
 	if certFile != "" && keyFile != "" {
 		cert, err := gmtls.LoadX509KeyPair(certFile, keyFile)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load certificate")
 		}
-		tlsConfig.Certificates = append(tlsConfig.Certificates, cert)
+		cfg.Certificates = append(cfg.Certificates, cert)
 	}
 
 	if encCertFile != "" && encKeyFile != "" {
@@ -82,7 +86,7 @@ func tlsConfig(cmd *cobra.Command) (*gmtls.Config, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load encrypt certificate")
 		}
-		tlsConfig.Certificates = append(tlsConfig.Certificates, encCert)
+		cfg.Certificates = append(cfg.Certificates, encCert)
 	}
 
 	if caFile != "" {
@@ -96,17 +100,17 @@ func tlsConfig(cmd *cobra.Command) (*gmtls.Config, error) {
 
 	switch tlsVersion {
 	case "tls1.1":
-		tlsConfig.MinVersion = gmtls.VersionTLS11
-		tlsConfig.MaxVersion = gmtls.VersionTLS11
+		cfg.MinVersion = gmtls.VersionTLS11
+		cfg.MaxVersion = gmtls.VersionTLS11
 	case "tls1.2":
-		tlsConfig.MinVersion = gmtls.VersionTLS12
-		tlsConfig.MaxVersion = gmtls.VersionTLS12
+		cfg.MinVersion = gmtls.VersionTLS12
+		cfg.MaxVersion = gmtls.VersionTLS12
 	case "tls1.3":
-		tlsConfig.MinVersion = gmtls.VersionTLS13
-		tlsConfig.MaxVersion = gmtls.VersionTLS13
+		cfg.MinVersion = gmtls.VersionTLS13
+		cfg.MaxVersion = gmtls.VersionTLS13
 	case "gmtls1.1":
-		tlsConfig.MinVersion = gmtls.VersionGMSSL
-		tlsConfig.MaxVersion = gmtls.VersionGMSSL
+		cfg.MinVersion = gmtls.VersionGMSSL
+		cfg.MaxVersion = gmtls.VersionGMSSL
 	}
-	return tlsConfig, nil
+	return cfg, nil
 }
