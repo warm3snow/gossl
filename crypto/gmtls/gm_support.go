@@ -372,7 +372,7 @@ func getKey(keyPEMBlock []byte) (*pem.Block, error) {
 func matchKeyCert(keyDERBlock *pem.Block, certDERBlock []byte) (gocyrpto.PrivateKey, error) {
 	// We don't need to parse the public key for TLS, but we so do anyway
 	// to check that it looks sane and matches the private key.
-	x509Cert, err := x509.ParseCertificate(certDERBlock)
+	x509Cert, err := ParseCertificate(certDERBlock)
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +449,7 @@ func GMX509KeyPairsSingle(certPEMBlock, keyPEMBlock []byte) (Certificate, error)
 	if len(certs) == 0 {
 		return certificate, errors.New("tls: failed to find any sign cert PEM data in cert input")
 	}
-	checkCert, err := x509.ParseCertificate(certs[0])
+	checkCert, err := ParseCertificate(certs[0])
 	if err != nil {
 		return certificate, errors.New("tls: failed to parse certificate")
 	}

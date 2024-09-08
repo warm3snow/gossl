@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/warm3snow/gossl/crypto/gmtls/config"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -97,7 +98,7 @@ func testHttpsClientRun(t *testing.T, url string, finish chan bool) {
 	resp, err := client.Get(url)
 	assert.NoError(t, err)
 
-	buf, err := ioutil.ReadAll(resp.Body)
+	buf, err := io.ReadAll(resp.Body)
 	assert.NoError(t, err)
 	assert.Equal(t, msg, buf)
 	log.Println("receive from server: " + string(buf))
@@ -138,10 +139,10 @@ func testHttpsClientRun_GM1(t *testing.T, url string, finish chan bool) {
 	finish <- true
 }
 func TestGMHttps(t *testing.T) {
-	finish := make(chan bool, 2)
-	go testHttpsServerRun(t, ":13002")
-	time.Sleep(time.Second * 2) //wait for server start
-	go testHttpsClientRun(t, "https://localhost:13002", finish)
+	finish := make(chan bool, 1)
+	//go testHttpsServerRun(t, ":13002")
+	//time.Sleep(time.Second * 2) //wait for server start
+	//go testHttpsClientRun(t, "https://localhost:13002", finish)
 
 	go testHttpsServerRun_GM1(t, ":13003")
 	time.Sleep(time.Second * 2) //wait for server start

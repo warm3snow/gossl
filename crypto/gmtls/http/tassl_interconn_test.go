@@ -119,7 +119,7 @@ func testHttpsClientRun_GM(t *testing.T, finish chan bool) {
 }
 
 func TestGMTLS(t *testing.T) {
-	finish := make(chan bool, 2)
+	finish := make(chan bool, 1)
 	//test grpc gmtls
 	go testGrpcServerRun_GM(t)
 	time.Sleep(time.Second * 2) //wait for server start

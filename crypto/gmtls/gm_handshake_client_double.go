@@ -643,7 +643,7 @@ findCert:
 			// node, or if chain.Leaf was nil
 			if j != 0 || x509Cert == nil {
 				var err error
-				if x509Cert, err = x509.ParseCertificate(cert); err != nil {
+				if x509Cert, err = ParseCertificate(cert); err != nil {
 					c.sendAlert(alertInternalError)
 					return nil, errors.New("tls: failed to parse client certificate #" + strconv.Itoa(i) + ": " + err.Error())
 				}

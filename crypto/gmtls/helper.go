@@ -11,10 +11,11 @@ package gmtls
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
 	"encoding/asn1"
 	"github.com/tjfoc/gmsm/sm2"
 	"github.com/tjfoc/gmsm/x509"
+	"golang.org/x/crypto/cryptobyte"
+	cbasn1 "golang.org/x/crypto/cryptobyte/asn1"
 	"math/big"
 )
 
@@ -48,20 +49,33 @@ type ECCSignature struct {
 }
 
 func SM2Verify(pub *sm2.PublicKey, hash, sig, uid []byte) bool {
-	var sm2Sig ECCSignature
-	_, err := asn1.Unmarshal(sig, &sm2Sig)
-	if err != nil {
+	var (
+		r, s  = &big.Int{}, &big.Int{}
+		inner cryptobyte.String
+	)
+	input := cryptobyte.String(sig)
+	if !input.ReadASN1(&inner, cbasn1.SEQUENCE) ||
+		!input.Empty() ||
+		!inner.ReadASN1Integer(r) ||
+		!inner.ReadASN1Integer(s) ||
+		!inner.Empty() {
 		return false
 	}
-	return sm2.Sm2Verify(pub, hash, uid, sm2Sig.R, sm2Sig.R)
+
+	return sm2.Sm2Verify(pub, hash, uid, r, s)
 }
 
 func SM2Sign(priv *sm2.PrivateKey, hash, uid []byte) ([]byte, error) {
-	r, s, err := sm2.Sm2Sign(priv, hash, uid, rand.Reader)
+	r, s, err := sm2.Sm2Sign(priv, hash, uid, nil)
 	if err != nil {
 		return nil, err
 	}
-	return asn1.Marshal(ECCSignature{r, s})
+	var b cryptobyte.Builder
+	b.AddASN1(cbasn1.SEQUENCE, func(b *cryptobyte.Builder) {
+		b.AddASN1BigInt(r)
+		b.AddASN1BigInt(s)
+	})
+	return b.Bytes()
 }
 
 var versMapping = map[uint16]string{
