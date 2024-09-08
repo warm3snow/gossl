@@ -332,6 +332,18 @@ func (ka *ecdheKeyAgreement) processServerKeyExchange(config *Config, clientHell
 	sig = sig[2:]
 
 	signed := hashForServerKeyExchange(sigType, sigHash, ka.version, clientHello.random, serverHello.random, serverECDHEParams)
+
+	// DEBUG NODE: print server key exchange message
+	{
+		fmt.Printf("---\n")
+		fmt.Printf("Server Key Exchange: \n")
+		fmt.Printf("  Server Temp Key: %s, %d bits\n", "ECDHE", len(publicKey)*8)
+		fmt.Printf("  PublicKey: %x\n", publicKey)
+		fmt.Printf("  Digest: %x\n", signed)
+		fmt.Printf("  Signature Type: %s\n", signatureMap[sigType])
+		fmt.Printf("  Signature: %x\n", sig)
+	}
+
 	if err := verifyHandshakeSignature(sigType, cert.PublicKey, gocrypto.Hash(sigHash), signed, sig); err != nil {
 		return errors.New("tls: invalid signature by the server certificate: " + err.Error())
 	}

@@ -230,7 +230,7 @@ func (hs *clientHandshakeStateGM) doFullHandshake() error {
 		certs := make([]*x509.Certificate, len(certMsg.certificates))
 
 		for i, asn1Data := range certMsg.certificates {
-			cert, err := x509.ParseCertificate(asn1Data)
+			cert, err := ParseCertificate(asn1Data)
 			if err != nil {
 				c.sendAlert(alertBadCertificate)
 				return errors.New("tls: failed to parse certificate from server: " + err.Error())

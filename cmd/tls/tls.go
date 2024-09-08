@@ -78,7 +78,6 @@ func tlsConfig(cmd *cobra.Command) (*gmtls.Config, error) {
 	}
 
 	if encCertFile != "" && encKeyFile != "" {
-		tlsConfig.GMSupport = &gmtls.GMSupport{}
 		encCert, err := gmtls.LoadX509KeyPair(encCertFile, encKeyFile)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load encrypt certificate")
@@ -98,10 +97,14 @@ func tlsConfig(cmd *cobra.Command) (*gmtls.Config, error) {
 	switch tlsVersion {
 	case "tls1.1":
 		tlsConfig.MinVersion = gmtls.VersionTLS11
+		tlsConfig.MaxVersion = gmtls.VersionTLS11
 	case "tls1.2":
 		tlsConfig.MinVersion = gmtls.VersionTLS12
+		tlsConfig.MaxVersion = gmtls.VersionTLS12
+	case "tls1.3":
+		tlsConfig.MinVersion = gmtls.VersionTLS13
+		tlsConfig.MaxVersion = gmtls.VersionTLS13
 	case "gmtls1.1":
-		tlsConfig.GMSupport = &gmtls.GMSupport{}
 		tlsConfig.MinVersion = gmtls.VersionGMSSL
 		tlsConfig.MaxVersion = gmtls.VersionGMSSL
 	}
