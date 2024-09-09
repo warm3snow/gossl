@@ -11,7 +11,6 @@ gossl is a crypto library implemented in golang. It provides a command-line tool
 - [x] RSA2048
 - [x] ECDSA
 - [x] SM2
-- [ ] ECDH
 - [ ] Ed25519
 
 #### Hashing
@@ -23,9 +22,15 @@ gossl is a crypto library implemented in golang. It provides a command-line tool
 
 #### KDF
 - [x] PBKDF2
-- [ ] BCRYPT
-- [ ] SCRYPT
-- [ ] Argon2
+- [x] BCRYPT
+- [x] SCRYPT
+- [x] Argon2
+
+### TLS
+- [x] TLS1.1
+- [x] TLS1.2
+- [x] TLS1.3
+- [x] GMTLS1.1
 
 
 ### Advanced Cryptography Primitives
