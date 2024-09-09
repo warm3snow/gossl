@@ -10,6 +10,7 @@ package asym
 
 import (
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
@@ -33,4 +34,8 @@ func (k *KeyGen) SM2KeyGen() (*sm2.PrivateKey, error) {
 
 func (k *KeyGen) ECDSAKeyGen(curve elliptic.Curve) (*ecdsa.PrivateKey, error) {
 	return ecdsa.GenerateKey(curve, rand.Reader)
+}
+
+func (e *KeyGen) Ed25519KeyGen() (privateKey, publicKey []byte, err error) {
+	return ed25519.GenerateKey(rand.Reader)
 }

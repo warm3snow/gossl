@@ -21,9 +21,10 @@ const (
 	Sha256 Algorithm = "sha256"
 	Sm3    Algorithm = "sm3"
 
-	Sm2   Algorithm = "sm2"
-	Ecdsa Algorithm = "ecdsa"
-	Rsa   Algorithm = "rsa"
+	Sm2     Algorithm = "sm2"
+	Ecdsa   Algorithm = "ecdsa"
+	Rsa     Algorithm = "rsa"
+	Ed25519 Algorithm = "ed25519"
 
 	X509 Algorithm = "encode"
 	CSR  Algorithm = "csr"

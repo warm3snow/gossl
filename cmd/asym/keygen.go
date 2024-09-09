@@ -95,6 +95,12 @@ func runKeyGen(cmd *cobra.Command) error {
 		if err != nil {
 			return errors.Wrapf(err, "marshal sm2 key failed")
 		}
+	case _const.Ed25519.String():
+		privateKey, _, err := keyGen.Ed25519KeyGen()
+		if err != nil {
+			return errors.Wrapf(err, "generate ed25519 key failed")
+		}
+		output = privateKey
 	}
 
 	keyPem := utils.PrivateKey2Pem(output)

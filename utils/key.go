@@ -65,6 +65,12 @@ func ParsePKCS8PrivateKey(der []byte) (any, error) {
 	if err == nil {
 		return key, nil
 	}
+
+	// ed25519
+	if len(der) == 64 {
+		return der[32:], nil
+	}
+
 	return nil, err
 }
 

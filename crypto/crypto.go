@@ -28,9 +28,10 @@ var AlgorithmMap = map[string]interface{}{
 	_const.Sha256.String(): &dgst.Sha256{},
 	_const.Sm3.String():    &dgst.Sm3{},
 
-	_const.Sm2.String():   &asym.Sm2WithSm3{},
-	_const.Ecdsa.String(): &asym.EccNoHash{},
-	_const.Rsa.String():   &asym.RsaNoSha256{},
+	_const.Sm2.String():     &asym.Sm2WithSm3{},
+	_const.Ecdsa.String():   &asym.EccNoHash{},
+	_const.Rsa.String():     &asym.RsaNoSha256{},
+	_const.Ed25519.String(): &asym.Ed25519{},
 
 	_const.X509.String(): &x509.X509Cert{},
 	_const.CSR.String():  &x509.CSR{},
@@ -51,6 +52,7 @@ var AlgorithmKindMap = map[string][]interface{}{
 		&asym.Sm2WithSm3{},
 		&asym.EccNoHash{},
 		&asym.RsaNoSha256{},
+		&asym.Ed25519{},
 	},
 
 	_const.X509.String(): {
@@ -60,9 +62,10 @@ var AlgorithmKindMap = map[string][]interface{}{
 }
 
 var AlgorithmKeyGenMap = map[string]interface{}{
-	_const.Rsa.String():   &asym.KeyGen{},
-	_const.Sm2.String():   &asym.KeyGen{},
-	_const.Ecdsa.String(): &asym.KeyGen{},
+	_const.Rsa.String():     &asym.KeyGen{},
+	_const.Sm2.String():     &asym.KeyGen{},
+	_const.Ecdsa.String():   &asym.KeyGen{},
+	_const.Ed25519.String(): &asym.KeyGen{},
 
 	_const.Sm4Cbc.String():    &sym.KeyGen{},
 	_const.Aes256Cbc.String(): &sym.KeyGen{},
