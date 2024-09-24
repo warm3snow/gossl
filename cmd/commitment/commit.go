@@ -61,7 +61,6 @@ func runCommit(cmd *cobra.Command, args []string) error {
 		}
 		inText = string(inBytes)
 	}
-	verbose, _ := cmd.Flags().GetBool("verbose")
 
 	var (
 		// commitments
@@ -102,9 +101,8 @@ func runCommit(cmd *cobra.Command, args []string) error {
 		CPoint = cc.Commit([]byte(inText), r)
 		m, r = cc.Open()
 	case _const.PedersenEccNIZKCommitment.String():
-		r = rBytes[:]
 		cc := commitment.NewPedersenEccNIZKCommitment(elliptic.P256())
-		CPoint = cc.Commit([]byte(inText), r)
+		CPoint = cc.Commit([]byte(inText), rBytes[:])
 		proof, x, y = cc.Open()
 	case _const.SigmaCommitment.String():
 		cc := commitment.NewSigmaEccNIZKCommitment(elliptic.P256())
@@ -122,25 +120,24 @@ func runCommit(cmd *cobra.Command, args []string) error {
 		cmd.Println("\tC:", CPoint)
 	}
 
-	if verbose {
-		fmt.Printf("Openings: \n")
-		if m != nil {
-			cmd.Println("\tm:", hex.EncodeToString(m))
-		}
-		if r != nil {
-			cmd.Println("\tr:", hex.EncodeToString(r))
-		}
-		if x != nil {
-			cmd.Println("\tx:", hex.EncodeToString(x))
-			cmd.Println("\ty:", hex.EncodeToString(y))
-		}
-		if e != nil {
-			cmd.Println("\te:", hex.EncodeToString(e))
-			cmd.Println("\tz:", hex.EncodeToString(z))
-		}
-		if proof != nil {
-			cmd.Println("\tproof:", proof)
-		}
+	fmt.Printf("Openings: \n")
+	if m != nil {
+		cmd.Println("\tm:", hex.EncodeToString(m))
 	}
+	if r != nil {
+		cmd.Println("\tr:", hex.EncodeToString(r))
+	}
+	if x != nil {
+		cmd.Println("\tx:", hex.EncodeToString(x))
+		cmd.Println("\ty:", hex.EncodeToString(y))
+	}
+	if e != nil {
+		cmd.Println("\te:", hex.EncodeToString(e))
+		cmd.Println("\tz:", hex.EncodeToString(z))
+	}
+	if proof != nil {
+		cmd.Println("\tproof:", proof)
+	}
+
 	return nil
 }
