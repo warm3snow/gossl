@@ -28,6 +28,13 @@ const (
 
 	X509 Algorithm = "encode"
 	CSR  Algorithm = "csr"
+
+	HashCommitment            Algorithm = "hash"
+	ElGamalCommitment         Algorithm = "elgamal"
+	PedersenCommitment        Algorithm = "pedersen"
+	PedersenEccCommitment     Algorithm = "pedersen_ecc"
+	PedersenEccNIZKCommitment Algorithm = "pedersen_ecc_nizk"
+	SigmaCommitment           Algorithm = "sigma"
 )
 
 type Curve string
@@ -38,17 +45,4 @@ const (
 	ECC_P384      Curve = "P-384"
 	ECC_P521      Curve = "P-521"
 	Ed25519_curve Curve = "ed25519"
-)
-
-type AlgorithmKind string
-
-func (a AlgorithmKind) String() string {
-	return string(a)
-}
-
-const (
-	Symmetric  AlgorithmKind = "symmetric"
-	Digest     AlgorithmKind = "digest"
-	Asymmetric AlgorithmKind = "asymmetric"
-	X509Kind   AlgorithmKind = "encode"
 )

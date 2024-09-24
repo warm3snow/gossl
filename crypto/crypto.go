@@ -10,6 +10,7 @@ package crypto
 
 import (
 	"github.com/warm3snow/gossl/crypto/asym"
+	"github.com/warm3snow/gossl/crypto/commitment"
 	_const "github.com/warm3snow/gossl/crypto/const"
 	"github.com/warm3snow/gossl/crypto/dgst"
 	"github.com/warm3snow/gossl/crypto/sym"
@@ -35,6 +36,13 @@ var AlgorithmMap = map[string]interface{}{
 
 	_const.X509.String(): &x509.X509Cert{},
 	_const.CSR.String():  &x509.CSR{},
+
+	_const.HashCommitment.String():            &commitment.HashCommitment{},
+	_const.ElGamalCommitment.String():         &commitment.ElGamalCommitment{},
+	_const.PedersenCommitment.String():        &commitment.PedersenCommitment{},
+	_const.PedersenEccCommitment.String():     &commitment.PedersenEccCommitment{},
+	_const.PedersenEccNIZKCommitment.String(): &commitment.PedersenEccNIZKCommitment{},
+	_const.SigmaCommitment.String():           &commitment.SigmaCommitment{},
 }
 
 var AlgorithmKindMap = map[string][]interface{}{
@@ -55,9 +63,16 @@ var AlgorithmKindMap = map[string][]interface{}{
 		&asym.Ed25519{},
 	},
 
-	_const.X509.String(): {
+	_const.X509Kind.String(): {
 		&x509.X509Cert{},
 		&x509.CSR{},
+	},
+
+	_const.CommitmentKind.String(): {
+		&commitment.HashCommitment{},
+		&commitment.ElGamalCommitment{},
+		&commitment.PedersenCommitment{},
+		&commitment.SigmaCommitment{},
 	},
 }
 
