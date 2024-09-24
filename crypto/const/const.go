@@ -30,6 +30,16 @@ const (
 	CSR  Algorithm = "csr"
 )
 
+type Curve string
+
+const (
+	Sm2_curve     Curve = "sm2"
+	ECC_P256      Curve = "P-256"
+	ECC_P384      Curve = "P-384"
+	ECC_P521      Curve = "P-521"
+	Ed25519_curve Curve = "ed25519"
+)
+
 type AlgorithmKind string
 
 func (a AlgorithmKind) String() string {
