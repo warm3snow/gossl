@@ -10,11 +10,24 @@ package commitment
 
 import (
 	"crypto/elliptic"
+	"encoding/hex"
 	"math/big"
+	"strings"
 )
 
 type Point struct {
 	X, Y []byte
+}
+
+func (p *Point) String() string {
+	return hex.EncodeToString(p.X) + "||" + hex.EncodeToString(p.Y)
+}
+
+func (p *Point) FromString(s string) *Point {
+	split := strings.Split(s, "||")
+	p.X, _ = hex.DecodeString(split[0])
+	p.Y, _ = hex.DecodeString(split[1])
+	return p
 }
 
 func PointToBytes(p *Point, curve elliptic.Curve) []byte {

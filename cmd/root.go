@@ -7,6 +7,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/warm3snow/gossl/cmd/asym"
+	"github.com/warm3snow/gossl/cmd/commitment"
 	"github.com/warm3snow/gossl/cmd/dgst"
 	"github.com/warm3snow/gossl/cmd/encode"
 	"github.com/warm3snow/gossl/cmd/kdf"
@@ -50,6 +51,7 @@ func init() {
 	rootCmd.AddCommand(encode.X509Cmd())
 	rootCmd.AddCommand(encode.ReqCmd())
 	rootCmd.AddCommand(tls.TLSCommand())
+	rootCmd.AddCommand(commitment.CommitmentCmd())
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,

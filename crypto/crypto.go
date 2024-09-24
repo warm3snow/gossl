@@ -42,7 +42,7 @@ var AlgorithmMap = map[string]interface{}{
 	_const.PedersenCommitment.String():        &commitment.PedersenCommitment{},
 	_const.PedersenEccCommitment.String():     &commitment.PedersenEccCommitment{},
 	_const.PedersenEccNIZKCommitment.String(): &commitment.PedersenEccNIZKCommitment{},
-	_const.SigmaCommitment.String():           &commitment.SigmaCommitment{},
+	_const.SigmaCommitment.String():           &commitment.SigmaEccNIZKCommitment{},
 }
 
 var AlgorithmKindMap = map[string][]interface{}{
@@ -72,7 +72,9 @@ var AlgorithmKindMap = map[string][]interface{}{
 		&commitment.HashCommitment{},
 		&commitment.ElGamalCommitment{},
 		&commitment.PedersenCommitment{},
-		&commitment.SigmaCommitment{},
+		&commitment.PedersenEccCommitment{},
+		&commitment.PedersenEccNIZKCommitment{},
+		&commitment.SigmaEccNIZKCommitment{},
 	},
 }
 
