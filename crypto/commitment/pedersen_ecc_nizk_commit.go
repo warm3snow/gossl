@@ -97,10 +97,10 @@ func (pec *PedersenEccNIZKCommitment) Open() (*Point, []byte, []byte) {
 
 // Verify the commitment
 // note here, x, y actually are x', y'
-func (pec *PedersenEccNIZKCommitment) Verify(C *Point, P *Point, x, y []byte) bool {
-	// P + h * C
+func (pec *PedersenEccNIZKCommitment) Verify(CC *Point, P *Point, x, y []byte) bool {
+	// P + h * CC
 	h := new(big.Int).SetBytes(PointToBytes(P, pec.curve))
-	hCx, hCy := pec.curve.ScalarMult(C.X, C.Y, h.Bytes())
+	hCx, hCy := pec.curve.ScalarMult(CC.X, CC.Y, h.Bytes())
 	Cx, Cy := pec.curve.Add(P.X, P.Y, hCx, hCy)
 
 	// xG + yH

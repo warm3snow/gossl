@@ -67,7 +67,7 @@ func (pec *PedersenEccCommitment) Open() ([]byte, []byte) {
 	return pec.m, pec.r
 }
 
-func (pec *PedersenEccCommitment) Verify(C *Point, m, r []byte) bool {
+func (pec *PedersenEccCommitment) Verify(CC *Point, m, r []byte) bool {
 	mInt := new(big.Int).SetBytes(m)
 	rInt := new(big.Int).SetBytes(r)
 
@@ -76,7 +76,7 @@ func (pec *PedersenEccCommitment) Verify(C *Point, m, r []byte) bool {
 
 	Cx, Cy := pec.curve.Add(mGx, mGy, rHx, rHy)
 
-	return Cx.Cmp(C.X) == 0 && Cy.Cmp(C.Y) == 0
+	return Cx.Cmp(CC.X) == 0 && Cy.Cmp(CC.Y) == 0
 }
 
 func (pec *PedersenEccCommitment) Algorithm() _const.Algorithm {

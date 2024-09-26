@@ -20,20 +20,20 @@ func TestNewHashCommitment(t *testing.T) {
 	hc := NewHashCommitment(sha3.New256())
 	assert.NotNil(t, hc)
 
-	C := hc.Commit([]byte("hello"), nil)
+	CC := hc.Commit([]byte("hello"), nil)
 	m, _ := hc.Open()
 
-	assert.True(t, hc.Verify(C, m, nil))
+	assert.True(t, hc.Verify(CC, m, nil))
 }
 
 func TestNewElGamalCommitment(t *testing.T) {
 	ec := NewElGamalCommitment(1024)
 	assert.NotNil(t, ec)
 
-	C := ec.Commit([]byte("hello"), []byte("world"))
+	CC := ec.Commit([]byte("hello"), []byte("world"))
 	m, r := ec.Open()
 
-	assert.True(t, ec.Verify(C, m, r))
+	assert.True(t, ec.Verify(CC, m, r))
 }
 
 func TestNewPedersenCommitment(t *testing.T) {
@@ -44,30 +44,30 @@ func TestNewPedersenCommitment(t *testing.T) {
 	_, err := rand.Read(rBytes[:])
 	assert.NoError(t, err)
 
-	C := pc.Commit([]byte("hello"), rBytes[:])
+	CC := pc.Commit([]byte("hello"), rBytes[:])
 	m, r := pc.Open()
 
-	assert.True(t, pc.Verify(C, m, r))
+	assert.True(t, pc.Verify(CC, m, r))
 }
 
 func TestNewPedersenEccCommitment(t *testing.T) {
 	pec := NewPedersenEccCommitment(elliptic.P256())
 	assert.NotNil(t, pec)
 
-	C := pec.Commit([]byte("hello"), []byte("world"))
+	CC := pec.Commit([]byte("hello"), []byte("world"))
 	m, r := pec.Open()
 
-	assert.True(t, pec.Verify(C, m, r))
+	assert.True(t, pec.Verify(CC, m, r))
 }
 
 func TestNewPedersenEccNIZKCommitment(t *testing.T) {
 	pec := NewPedersenEccNIZKCommitment(elliptic.P256())
 	assert.NotNil(t, pec)
 
-	C := pec.Commit([]byte("hello"), []byte("world"))
+	CC := pec.Commit([]byte("hello"), []byte("world"))
 	P, x, y := pec.Open()
 
-	assert.True(t, pec.Verify(C, P, x, y))
+	assert.True(t, pec.Verify(CC, P, x, y))
 }
 
 func TestNewSigmaEccNIZKCommitment(t *testing.T) {
@@ -78,7 +78,13 @@ func TestNewSigmaEccNIZKCommitment(t *testing.T) {
 	_, err := rand.Read(r[:])
 	assert.NoError(t, err)
 
-	C := sec.Commit([]byte("hello"), r[:])
+	Q := sec.Commit([]byte("hello"), r[:])
 	x, y := sec.Open()
-	assert.True(t, sec.Verify(C, x, y))
+
+	var (
+		cc Point
+	)
+	cc.FromString(Q.String())
+
+	assert.True(t, sec.Verify(&cc, x, y))
 }

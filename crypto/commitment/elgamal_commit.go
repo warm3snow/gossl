@@ -58,14 +58,14 @@ func (ec *ElGamalCommitment) Open() ([]byte, []byte) {
 	return ec.m, ec.r
 }
 
-func (ec *ElGamalCommitment) Verify(C *Point, m, r []byte) bool {
+func (ec *ElGamalCommitment) Verify(CC *Point, m, r []byte) bool {
 	mInt := new(big.Int).SetBytes(m)
 	rInt := new(big.Int).SetBytes(r)
 
 	G := new(big.Int).Exp(ec.g, rInt, ec.p)
 	mH := new(big.Int).Mul(mInt, new(big.Int).Exp(ec.h, rInt, ec.p))
 
-	return G.Cmp(C.X) == 0 && mH.Cmp(C.Y) == 0
+	return G.Cmp(CC.X) == 0 && mH.Cmp(CC.Y) == 0
 }
 
 func (ec *ElGamalCommitment) Algorithm() _const.Algorithm {
