@@ -9,7 +9,6 @@
 package commitment
 
 import (
-	"bytes"
 	"crypto/rand"
 	_const "github.com/warm3snow/gossl/crypto/const"
 	"math/big"
@@ -33,6 +32,16 @@ func NewElGamalCommitment(bitSize int) *ElGamalCommitment {
 	return &ElGamalCommitment{g: g, p: p, h: h}
 }
 
+func (ec *ElGamalCommitment) GetCommonParams() (g, h, p string) {
+	return ec.g.String(), ec.h.String(), ec.p.String()
+}
+
+func (ec *ElGamalCommitment) SetCommonParams(g, h, p string) {
+	ec.g.SetString(g, 10)
+	ec.h.SetString(h, 10)
+	ec.p.SetString(p, 10)
+}
+
 func (ec *ElGamalCommitment) Commit(m []byte, r []byte) *Point {
 	mInt := new(big.Int).SetBytes(m)
 	rInt := new(big.Int).SetBytes(r)
@@ -42,7 +51,7 @@ func (ec *ElGamalCommitment) Commit(m []byte, r []byte) *Point {
 
 	ec.m, ec.r = m, r
 
-	return &Point{G.Bytes(), mH.Bytes()}
+	return &Point{G, mH}
 }
 
 func (ec *ElGamalCommitment) Open() ([]byte, []byte) {
@@ -56,7 +65,7 @@ func (ec *ElGamalCommitment) Verify(C *Point, m, r []byte) bool {
 	G := new(big.Int).Exp(ec.g, rInt, ec.p)
 	mH := new(big.Int).Mul(mInt, new(big.Int).Exp(ec.h, rInt, ec.p))
 
-	return bytes.Equal(G.Bytes(), C.X) && bytes.Equal(mH.Bytes(), C.Y)
+	return G.Cmp(C.X) == 0 && mH.Cmp(C.Y) == 0
 }
 
 func (ec *ElGamalCommitment) Algorithm() _const.Algorithm {

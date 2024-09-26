@@ -9,7 +9,6 @@
 package commitment
 
 import (
-	"bytes"
 	"crypto/elliptic"
 	"crypto/rand"
 	_const "github.com/warm3snow/gossl/crypto/const"
@@ -17,34 +16,35 @@ import (
 )
 
 type PedersenEccCommitment struct {
-	G     *ECCPoint
-	H     *ECCPoint
+	G     *Point
+	H     *Point
 	curve elliptic.Curve
 
 	m, r []byte
 }
 
-type ECCPoint struct {
-	X, Y *big.Int
-}
-
-type PedersenEccC struct {
-	X, Y *big.Int
-}
-
 func NewPedersenEccCommitment(curve elliptic.Curve) *PedersenEccCommitment {
-	G := &ECCPoint{X: curve.Params().Gx, Y: curve.Params().Gy}
+	G := &Point{X: curve.Params().Gx, Y: curve.Params().Gy}
 
 	// rand H point
-	r, err := rand.Prime(rand.Reader, curve.Params().P.BitLen())
+	var r [32]byte
+	_, err := rand.Read(r[:])
 	if err != nil {
 		panic(err)
 	}
-	r = new(big.Int).Sub(r, big.NewInt(1))
-	Hx, Hy := curve.ScalarBaseMult(r.Bytes())
-	H := &ECCPoint{X: Hx, Y: Hy}
+	Hx, Hy := curve.ScalarBaseMult(r[:])
+	H := &Point{X: Hx, Y: Hy}
 
 	return &PedersenEccCommitment{G: G, H: H, curve: curve}
+}
+
+func (pec *PedersenEccCommitment) GetCommonParams() (G, H string) {
+	return pec.G.String(), pec.H.String()
+}
+
+func (pec *PedersenEccCommitment) SetCommonParams(G, H string) {
+	pec.G.FromString(G)
+	pec.H.FromString(H)
 }
 
 func (pec *PedersenEccCommitment) Commit(m []byte, r []byte) *Point {
@@ -55,7 +55,7 @@ func (pec *PedersenEccCommitment) Commit(m []byte, r []byte) *Point {
 	rHx, rHy := pec.curve.ScalarMult(pec.H.X, pec.H.Y, rInt.Bytes())
 
 	Cx, Cy := pec.curve.Add(mGx, mGy, rHx, rHy)
-	C := &Point{X: Cx.Bytes(), Y: Cy.Bytes()}
+	C := &Point{X: Cx, Y: Cy}
 
 	// save m, r
 	pec.m, pec.r = m, r
@@ -76,7 +76,7 @@ func (pec *PedersenEccCommitment) Verify(C *Point, m, r []byte) bool {
 
 	Cx, Cy := pec.curve.Add(mGx, mGy, rHx, rHy)
 
-	return bytes.Equal(C.X, Cx.Bytes()) && bytes.Equal(C.Y, Cy.Bytes())
+	return Cx.Cmp(C.X) == 0 && Cy.Cmp(C.Y) == 0
 }
 
 func (pec *PedersenEccCommitment) Algorithm() _const.Algorithm {

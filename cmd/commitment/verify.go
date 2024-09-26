@@ -40,17 +40,22 @@ func init() {
 	// is called directly, e.g.:
 	// verifyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	verifyCmd.PersistentFlags().StringVar(&C, "C", "", "commitment of the chosen value")
+	verifyCmd.PersistentFlags().StringVar(&g, "g", "", "common params - generator of group, such as g/G")
+	verifyCmd.PersistentFlags().StringVar(&h, "h", "", "common params - element of group, such as h/H")
+	verifyCmd.PersistentFlags().StringVar(&p, "p", "", "common params - prime number, such as p")
+
+	verifyCmd.PersistentFlags().StringVar(&C, "C", "", "commit of commitment")
 	verifyCmd.PersistentFlags().StringVar(&x, "x", "", "opening of commitment, such as m/e/x")
 	verifyCmd.PersistentFlags().StringVar(&y, "y", "", "opening of commitment, such as r/z/y")
-	verifyCmd.PersistentFlags().StringVar(&proof, "proof", "", "proof of commitment, only for nizk commitment")
+	verifyCmd.PersistentFlags().StringVar(&proof, "proof", "", "opening of commitment, only for nizk commitment")
 }
 
 var (
-	x     string
-	y     string
-	C     string
-	proof string
+	g, h, p string
+	x       string
+	y       string
+	C       string
+	proof   string
 )
 
 func runVerify(cmd *cobra.Command, args []string) error {
@@ -97,15 +102,24 @@ func runVerify(cmd *cobra.Command, args []string) error {
 		cc := commitment.NewHashCommitment(sha256.New())
 		verifyOK = cc.Verify(cBytes, xBytes, yBytes)
 	case _const.ElGamalCommitment.String():
-	//cc := commitment.NewElGamalCommitment(1024)
+		cc := commitment.NewElGamalCommitment(1024)
+		cc.SetCommonParams(g, h, p)
+		verifyOK = cc.Verify(cPoint, xBytes, yBytes)
 	case _const.PedersenCommitment.String():
-	//cc := commitment.NewPedersenCommitment(1024)
+		cc := commitment.NewPedersenCommitment(1024)
+		cc.SetCommonParams(g, h, p)
+		verifyOK = cc.Verify(cBytes, xBytes, yBytes)
 	case _const.PedersenEccCommitment.String():
-	//cc := commitment.NewPedersenEccCommitment(elliptic.P256())
+		cc := commitment.NewPedersenEccCommitment(elliptic.P256())
+		cc.SetCommonParams(g, h)
+		verifyOK = cc.Verify(cPoint, xBytes, yBytes)
 	case _const.PedersenEccNIZKCommitment.String():
-	//cc := commitment.NewPedersenEccNIZKCommitment(elliptic.P256())
+		cc := commitment.NewPedersenEccNIZKCommitment(elliptic.P256())
+		cc.SetCommonParams(g, h)
+		verifyOK = cc.Verify(cPoint, proofPoint, xBytes, yBytes)
 	case _const.SigmaCommitment.String():
 		cc := commitment.NewSigmaEccNIZKCommitment(elliptic.P256())
+		cc.SetCommonParams(g)
 		verifyOK = cc.Verify(cPoint, xBytes, yBytes)
 	default:
 		return errors.New("unsupported algorithm")

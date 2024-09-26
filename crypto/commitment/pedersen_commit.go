@@ -33,6 +33,16 @@ func NewPedersenCommitment(bitSize int) *PedersenCommitment {
 	return &PedersenCommitment{g: g, h: h, p: p}
 }
 
+func (c *PedersenCommitment) GetCommonParams() (g, h, p string) {
+	return c.g.String(), c.h.String(), c.p.String()
+}
+
+func (c *PedersenCommitment) SetCommonParams(g, h, p string) {
+	c.g.SetString(g, 10)
+	c.h.SetString(h, 10)
+	c.p.SetString(p, 10)
+}
+
 func (pc *PedersenCommitment) Commit(m []byte, r []byte) []byte {
 	mInt := new(big.Int).SetBytes(m)
 	rInt := new(big.Int).SetBytes(r)

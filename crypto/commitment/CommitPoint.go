@@ -10,23 +10,22 @@ package commitment
 
 import (
 	"crypto/elliptic"
-	"encoding/hex"
 	"math/big"
 	"strings"
 )
 
 type Point struct {
-	X, Y []byte
+	X, Y *big.Int
 }
 
 func (p *Point) String() string {
-	return hex.EncodeToString(p.X) + "||" + hex.EncodeToString(p.Y)
+	return p.X.String() + "||" + p.Y.String()
 }
 
 func (p *Point) FromString(s string) *Point {
 	split := strings.Split(s, "||")
-	p.X, _ = hex.DecodeString(split[0])
-	p.Y, _ = hex.DecodeString(split[1])
+	p.X, _ = new(big.Int).SetString(split[0], 10)
+	p.Y, _ = new(big.Int).SetString(split[1], 10)
 	return p
 }
 
@@ -34,9 +33,7 @@ func PointToBytes(p *Point, curve elliptic.Curve) []byte {
 	if p == nil || p.X == nil || p.Y == nil {
 		return []byte{0x00} // 0x00 means ∞
 	}
-	return elliptic.MarshalCompressed(curve,
-		new(big.Int).SetBytes(p.X),
-		new(big.Int).SetBytes(p.Y))
+	return elliptic.MarshalCompressed(curve, p.X, p.Y)
 }
 
 func PointNegate(p *Point, curve elliptic.Curve) *Point {
@@ -46,8 +43,8 @@ func PointNegate(p *Point, curve elliptic.Curve) *Point {
 	// y = -y mod p
 	//The inverse of a point 𝑃=(𝑥𝑃,𝑦𝑃) is its reflexion across the x-axis: 𝑃′=(𝑥𝑃,−𝑦𝑃)
 	//must -yP be taken mod P
-	y := new(big.Int).Sub(big.NewInt(0), new(big.Int).SetBytes(p.Y))
+	y := new(big.Int).Sub(big.NewInt(0), p.Y)
 	y = new(big.Int).Mod(y, curve.Params().P)
 
-	return &Point{X: p.X, Y: y.Bytes()}
+	return &Point{X: p.X, Y: y}
 }

@@ -16,7 +16,7 @@ import (
 )
 
 type SigmaEccNIZKCommitment struct {
-	G *ECCPoint
+	G *Point
 
 	curve elliptic.Curve
 
@@ -26,16 +26,24 @@ type SigmaEccNIZKCommitment struct {
 
 func NewSigmaEccNIZKCommitment(curve elliptic.Curve) *SigmaEccNIZKCommitment {
 	return &SigmaEccNIZKCommitment{
-		G:     &ECCPoint{curve.Params().Gx, curve.Params().Gy},
+		G:     &Point{curve.Params().Gx, curve.Params().Gy},
 		curve: curve,
 	}
+}
+
+func (sec *SigmaEccNIZKCommitment) GetCommonParams() string {
+	return sec.G.String()
+}
+
+func (sec *SigmaEccNIZKCommitment) SetCommonParams(G string) {
+	sec.G.FromString(G)
 }
 
 func (sec *SigmaEccNIZKCommitment) Commit(m []byte, r []byte) *Point {
 	// Q is the commitment for m
 	mInt := new(big.Int).SetBytes(m)
 	mGx, mGy := sec.curve.ScalarMult(sec.G.X, sec.G.Y, mInt.Bytes())
-	Q := &Point{X: mGx.Bytes(), Y: mGy.Bytes()}
+	Q := &Point{X: mGx, Y: mGy}
 
 	// save m, not using the r
 	sec.m = m
@@ -53,7 +61,7 @@ func (sec *SigmaEccNIZKCommitment) Open() ([]byte, []byte) {
 	}
 
 	Cx, Cy := sec.curve.ScalarMult(sec.G.X, sec.G.Y, r[:])
-	C := &Point{X: Cx.Bytes(), Y: Cy.Bytes()}
+	C := &Point{X: Cx, Y: Cy}
 
 	QBytes := PointToBytes(sec.Q, sec.curve)
 	CBytes := PointToBytes(C, sec.curve)
@@ -70,10 +78,10 @@ func (sec *SigmaEccNIZKCommitment) Verify(Q *Point, e []byte, z []byte) bool {
 
 	// A = zG - eQ
 	zGx, zGy := sec.curve.ScalarBaseMult(zInt.Bytes())
-	eQx, eQy := sec.curve.ScalarMult(new(big.Int).SetBytes(Q.X), new(big.Int).SetBytes(Q.Y), eInt.Bytes())
-	negEQ := PointNegate(&Point{X: eQx.Bytes(), Y: eQy.Bytes()}, sec.curve)
-	Ax, Ay := sec.curve.Add(zGx, zGy, new(big.Int).SetBytes(negEQ.X), new(big.Int).SetBytes(negEQ.Y))
-	A := &Point{X: Ax.Bytes(), Y: Ay.Bytes()}
+	eQx, eQy := sec.curve.ScalarMult(Q.X, Q.Y, eInt.Bytes())
+	negEQ := PointNegate(&Point{X: eQx, Y: eQy}, sec.curve)
+	Ax, Ay := sec.curve.Add(zGx, zGy, negEQ.X, negEQ.Y)
+	A := &Point{X: Ax, Y: Ay}
 
 	// check e == H(Q, A)
 	QBytes := PointToBytes(Q, sec.curve)

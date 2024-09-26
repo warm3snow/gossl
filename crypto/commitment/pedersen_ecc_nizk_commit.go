@@ -16,15 +16,15 @@ import (
 )
 
 type PedersenEccNIZKCommitment struct {
-	G     *ECCPoint
-	H     *ECCPoint
+	G     *Point
+	H     *Point
 	curve elliptic.Curve
 
 	m, r []byte
 }
 
 func NewPedersenEccNIZKCommitment(curve elliptic.Curve) *PedersenEccNIZKCommitment {
-	G := &ECCPoint{X: curve.Params().Gx, Y: curve.Params().Gy}
+	G := &Point{X: curve.Params().Gx, Y: curve.Params().Gy}
 
 	// rand H point
 	r, err := rand.Prime(rand.Reader, curve.Params().P.BitLen())
@@ -33,9 +33,18 @@ func NewPedersenEccNIZKCommitment(curve elliptic.Curve) *PedersenEccNIZKCommitme
 	}
 	r = new(big.Int).Sub(r, big.NewInt(1))
 	Hx, Hy := curve.ScalarBaseMult(r.Bytes())
-	H := &ECCPoint{X: Hx, Y: Hy}
+	H := &Point{X: Hx, Y: Hy}
 
 	return &PedersenEccNIZKCommitment{G: G, H: H, curve: curve}
+}
+
+func (pec *PedersenEccNIZKCommitment) GetCommonParams() (G, H string) {
+	return pec.G.String(), pec.H.String()
+}
+
+func (pec *PedersenEccNIZKCommitment) SetCommonParams(G, H string) {
+	pec.G.FromString(G)
+	pec.H.FromString(H)
 }
 
 func (pec *PedersenEccNIZKCommitment) Commit(m []byte, r []byte) *Point {
@@ -46,7 +55,7 @@ func (pec *PedersenEccNIZKCommitment) Commit(m []byte, r []byte) *Point {
 	rHx, rHy := pec.curve.ScalarMult(pec.H.X, pec.H.Y, rInt.Bytes())
 
 	Cx, Cy := pec.curve.Add(mGx, mGy, rHx, rHy)
-	C := &Point{X: Cx.Bytes(), Y: Cy.Bytes()}
+	C := &Point{X: Cx, Y: Cy}
 
 	// save m, r
 	pec.m, pec.r = m, r
@@ -73,7 +82,7 @@ func (pec *PedersenEccNIZKCommitment) Open() (*Point, []byte, []byte) {
 	xGx, xGy := pec.curve.ScalarMult(pec.G.X, pec.G.Y, x.Bytes())
 	yHx, yHy := pec.curve.ScalarMult(pec.H.X, pec.H.Y, y.Bytes())
 	Px, Py := pec.curve.Add(xGx, xGy, yHx, yHy)
-	P := &Point{X: Px.Bytes(), Y: Py.Bytes()}
+	P := &Point{X: Px, Y: Py}
 
 	// H(P)
 	hBytes := PointToBytes(P, pec.curve)
@@ -91,8 +100,8 @@ func (pec *PedersenEccNIZKCommitment) Open() (*Point, []byte, []byte) {
 func (pec *PedersenEccNIZKCommitment) Verify(C *Point, P *Point, x, y []byte) bool {
 	// P + h * C
 	h := new(big.Int).SetBytes(PointToBytes(P, pec.curve))
-	hCx, hCy := pec.curve.ScalarMult(new(big.Int).SetBytes(C.X), new(big.Int).SetBytes(C.Y), h.Bytes())
-	Cx, Cy := pec.curve.Add(new(big.Int).SetBytes(P.X), new(big.Int).SetBytes(P.Y), hCx, hCy)
+	hCx, hCy := pec.curve.ScalarMult(C.X, C.Y, h.Bytes())
+	Cx, Cy := pec.curve.Add(P.X, P.Y, hCx, hCy)
 
 	// xG + yH
 	xGx, xGy := pec.curve.ScalarMult(pec.G.X, pec.G.Y, new(big.Int).SetBytes(x).Bytes())

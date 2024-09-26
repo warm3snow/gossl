@@ -63,9 +63,13 @@ func runCommit(cmd *cobra.Command, args []string) error {
 	}
 
 	var (
+		// common params
+		g, h, p string
+
 		// commitments
 		C      []byte
 		CPoint *commitment.Point
+
 		// openings
 		m, r  []byte
 		x, y  []byte
@@ -90,26 +94,42 @@ func runCommit(cmd *cobra.Command, args []string) error {
 		cc := commitment.NewElGamalCommitment(1024)
 		CPoint = cc.Commit([]byte(inText), r)
 		m, r = cc.Open()
+		g, h, p = cc.GetCommonParams()
 	case _const.PedersenCommitment.String():
 		r = rBytes[:]
 		cc := commitment.NewPedersenCommitment(1024)
 		C = cc.Commit([]byte(inText), r)
 		m, r = cc.Open()
+		g, h, p = cc.GetCommonParams()
 	case _const.PedersenEccCommitment.String():
 		r = rBytes[:]
 		cc := commitment.NewPedersenEccCommitment(elliptic.P256())
 		CPoint = cc.Commit([]byte(inText), r)
 		m, r = cc.Open()
+		g, h = cc.GetCommonParams()
 	case _const.PedersenEccNIZKCommitment.String():
 		cc := commitment.NewPedersenEccNIZKCommitment(elliptic.P256())
 		CPoint = cc.Commit([]byte(inText), rBytes[:])
 		proof, x, y = cc.Open()
+		g, h = cc.GetCommonParams()
 	case _const.SigmaCommitment.String():
 		cc := commitment.NewSigmaEccNIZKCommitment(elliptic.P256())
 		CPoint = cc.Commit([]byte(inText), nil)
 		e, z = cc.Open()
+		g = cc.GetCommonParams()
 	default:
 		return errors.New("unsupported algorithm")
+	}
+
+	fmt.Printf("Common Params: \n")
+	if g != "" {
+		cmd.Println("\tg:", g)
+	}
+	if h != "" {
+		cmd.Println("\th:", h)
+	}
+	if p != "" {
+		cmd.Println("\tp:", p)
 	}
 
 	fmt.Printf("Commitments: \n")
