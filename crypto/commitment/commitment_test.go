@@ -11,6 +11,8 @@ package commitment
 import (
 	"crypto/elliptic"
 	"crypto/rand"
+	"encoding/hex"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/sha3"
 	"testing"
@@ -54,10 +56,25 @@ func TestNewPedersenEccCommitment(t *testing.T) {
 	pec := NewPedersenEccCommitment(elliptic.P256())
 	assert.NotNil(t, pec)
 
-	CC := pec.Commit([]byte("hello"), []byte("world"))
+	var rBytes [32]byte
+	_, err := rand.Read(rBytes[:])
+	assert.NoError(t, err)
+
+	CC := pec.Commit([]byte("hello"), rBytes[:])
 	m, r := pec.Open()
 
-	assert.True(t, pec.Verify(CC, m, r))
+	verifyOk := pec.Verify(CC, m, r)
+	assert.True(t, verifyOk)
+
+	fmt.Printf("Common Params: \n")
+	G, H := pec.GetCommonParams()
+	fmt.Printf("G: %s\n", G)
+	fmt.Printf("H: %s\n", H)
+	fmt.Printf("C: %s\n", CC.String())
+	fmt.Printf("m: %s\n", hex.EncodeToString(m))
+	fmt.Printf("r: %s\n", hex.EncodeToString(r))
+
+	fmt.Printf("Verify: %v\n", verifyOk)
 }
 
 func TestNewPedersenEccNIZKCommitment(t *testing.T) {
@@ -81,10 +98,19 @@ func TestNewSigmaEccNIZKCommitment(t *testing.T) {
 	Q := sec.Commit([]byte("hello"), r[:])
 	x, y := sec.Open()
 
-	var (
-		cc Point
-	)
-	cc.FromString(Q.String())
+	//var (
+	//	cc Point
+	//)
+	//cc.FromString(Q.String())
 
-	assert.True(t, sec.Verify(&cc, x, y))
+	verifyOk := sec.Verify(Q, x, y)
+	assert.True(t, verifyOk)
+
+	fmt.Printf("Common Params: \n")
+	fmt.Printf("g: %s\n", sec.GetCommonParams())
+	fmt.Printf("C: %s\n", Q.String())
+	fmt.Printf("e: %s\n", hex.EncodeToString(x))
+	fmt.Printf("z: %s\n", hex.EncodeToString(y))
+
+	fmt.Printf("Verify: %v\n", verifyOk)
 }
