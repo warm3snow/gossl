@@ -9,7 +9,10 @@
 package utils
 
 import (
+	"crypto/elliptic"
+	"crypto/sha256"
 	"encoding/hex"
+	"math/big"
 )
 
 func Hex2Bytes(hexStr string) ([]byte, error) {
@@ -34,4 +37,21 @@ func KeyFile2PublicKey(keyFile string) (any, error) {
 		return nil, err
 	}
 	return KeyPem2PublicKey(keyPem)
+}
+
+// HashPointToPrivateKey hashes a point on the elliptic curve and derives a private key
+func HashPointToPrivateKey(curve elliptic.Curve, pointX, pointY *big.Int) *big.Int {
+	// Hash the point using SHA-256
+	h := sha256.New()
+	h.Write(pointX.Bytes())
+	h.Write(pointY.Bytes())
+	hashed := h.Sum(nil)
+
+	// Convert the hash to a private key (big.Int)
+	privateKey := new(big.Int).SetBytes(hashed)
+
+	// Ensure the private key is within the valid range
+	privateKey.Mod(privateKey, curve.Params().N)
+
+	return privateKey
 }
