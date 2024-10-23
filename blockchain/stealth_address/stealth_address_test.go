@@ -23,6 +23,11 @@ func TestNewStealthAddress(t *testing.T) {
 	b, _ := steathAddress.GenRandomPrivateKey()
 	r, _ := steathAddress.GenRandomPrivateKey()
 
+	aPub := elliptic.MarshalCompressed(curve, a.X, a.Y)
+	fmt.Println("A = ", hex.EncodeToString(aPub))
+	bPub := elliptic.MarshalCompressed(curve, b.X, b.Y)
+	fmt.Println("B = ", hex.EncodeToString(bPub))
+
 	// P = H(rA)G + B
 	P1 := steathAddress.GenStealthPublicKeyBySender(&a.PublicKey, &b.PublicKey, r)
 	fmt.Println("r = ", r.D)
@@ -32,6 +37,7 @@ func TestNewStealthAddress(t *testing.T) {
 	P1Pub := elliptic.MarshalCompressed(curve, P1.X, P1.Y)
 	fmt.Printf("P = H(rA)G + B = %s\n", hex.EncodeToString(P1Pub))
 
+	fmt.Println("=====================")
 	// P' = H(aR)G + B
 	P2 := steathAddress.GenStealthPublicKeyByReceiver(a, &b.PublicKey, &r.PublicKey)
 	P2Pub := elliptic.MarshalCompressed(curve, P2.X, P2.Y)

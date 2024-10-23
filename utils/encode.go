@@ -9,6 +9,7 @@
 package utils
 
 import (
+	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/sha256"
 	"encoding/hex"
@@ -54,4 +55,29 @@ func HashPointToPrivateKey(curve elliptic.Curve, pointX, pointY *big.Int) *big.I
 	privateKey.Mod(privateKey, curve.Params().N)
 
 	return privateKey
+}
+
+// HashPointToPublicKey hashes a point on the elliptic curve
+func HashPointToPublicKey(curve elliptic.Curve, pointX, pointY *big.Int) *ecdsa.PublicKey {
+	// Hash the point using SHA-256
+	h := sha256.New()
+	h.Write(pointX.Bytes())
+	h.Write(pointY.Bytes())
+	hashed := h.Sum(nil)
+
+	// Convert the hash to a private key (big.Int)
+	privateKey := new(big.Int).SetBytes(hashed)
+
+	// Ensure the private key is within the valid range
+	privateKey.Mod(privateKey, curve.Params().N)
+
+	// Generate the public key
+	x, y := curve.ScalarBaseMult(privateKey.Bytes())
+	publicKey := &ecdsa.PublicKey{
+		Curve: curve,
+		X:     x,
+		Y:     y,
+	}
+
+	return publicKey
 }
